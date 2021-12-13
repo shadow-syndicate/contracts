@@ -3,19 +3,20 @@
 pragma solidity ^0.8.10;
 
 import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/utils/Strings.sol";
+import "../interfaces/IMetadata.sol";
 
 /**
  * @title ERC-721 Non-Fungible Token Standard, metadata extension
  * @dev See https://eips.ethereum.org/EIPS/eip-721
  * Can be changed in future to support new features
  */
-contract Metadata {
+contract Metadata is IMetadata {
     using Strings for uint256;
 
     /**
     * @dev See {IERC721Metadata-tokenURI}.
      */
-    function tokenURI(uint256 tokenId) public view returns (string memory) {
+    function tokenURI(uint256 tokenId) external view returns (string memory) {
         string memory baseURI = _baseURI();
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }

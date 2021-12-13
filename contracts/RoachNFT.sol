@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 
 import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/ERC721.sol";
 import "./Operators.sol";
-import "./Metadata.sol";
+import "../interfaces/IMetadata.sol";
 import "../interfaces/IRoachNFT.sol";
 import "../interfaces/IGenomeProvider.sol";
 
@@ -21,14 +21,14 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     // uint public BIRTH_COOLDOWN = uint256(-1); // max int, will be changed to 7 week later
     uint public BIRTH_COOLDOWN = 1; // for debug only
     uint constant public EMPTY_GENOME = 0;
-    Metadata public metadataContract;
+    IMetadata public metadataContract;
     IGenomeProvider public genomeProviderContract;
 
     event Birth(uint tokenId);
-    event MetadataContractChanged(Metadata metadataContract);
+    event MetadataContractChanged(IMetadata metadataContract);
     event GenomeProviderContractChanged(IGenomeProvider genomeProviderContract);
 
-    constructor(Metadata _metadataContract, IGenomeProvider _genomeProviderContract)
+    constructor(IMetadata _metadataContract, IGenomeProvider _genomeProviderContract)
         ERC721('Roach Racing Club', 'ROACH')
     {
         _setMetadataContract(_metadataContract);
@@ -90,12 +90,12 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
 
     // Metadata
 
-    function _setMetadataContract(Metadata newContract) internal {
+    function _setMetadataContract(IMetadata newContract) internal {
         metadataContract = newContract;
         emit MetadataContractChanged(newContract);
     }
 
-    function setMetadataContract(Metadata newContract) external onlyOwner {
+    function setMetadataContract(IMetadata newContract) external onlyOwner {
         _setMetadataContract(newContract);
     }
 

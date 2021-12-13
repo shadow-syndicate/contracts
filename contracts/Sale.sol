@@ -8,7 +8,7 @@ import "../interfaces/IRoachNFT.sol";
 contract Sale is Operators {
 
     uint constant public ROACH_PRICE = 0.001 ether;
-    uint constant public SALE_LIMIT = 10000;
+    uint constant public SALE_LIMIT = 10_000;
 
     IERC20 public moneyTokenContract;
     IRoachNFT public roachContract;
