@@ -21,10 +21,13 @@ contract Operators is Ownable {
         return operatorAddress[_addr] || isOwner(_addr);
     }
 
+    function _addOperator(address _newOperator) internal {
+        operatorAddress[_newOperator] = true;
+    }
+
     function addOperator(address _newOperator) external onlyOwner {
         require(_newOperator != address(0), "New operator is empty");
-
-        operatorAddress[_newOperator] = true;
+        _addOperator(_newOperator);
     }
 
     function removeOperator(address _oldOperator) external onlyOwner {

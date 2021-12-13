@@ -4,9 +4,9 @@ pragma solidity ^0.8.10;
 
 type Genome is uint256;
 
-interface RoachNFTInterface {
+interface IRoachNFT {
 
     function mint(address to, Genome genome, uint40[2] calldata parents) external;
     function mintGen0(address to) external;
-
+    function setGenome(uint tokenId, Genome genome) external;
 }

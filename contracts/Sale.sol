@@ -3,7 +3,7 @@
 pragma solidity ^0.8.10;
 
 import "./Operators.sol";
-import "../interfaces/RoachNFTInterface.sol";
+import "../interfaces/IRoachNFT.sol";
 
 contract Sale is Operators {
 
@@ -11,12 +11,12 @@ contract Sale is Operators {
     uint constant public SALE_LIMIT = 10000;
 
     IERC20 public moneyTokenContract;
-    RoachNFTInterface public roachContract;
+    IRoachNFT public roachContract;
     uint public soldCount = 0;
 
     // TODO: Whitelist & stages
 
-    constructor(IERC20 _moneyToken, RoachNFTInterface _roachContract) {
+    constructor(IERC20 _moneyToken, IRoachNFT _roachContract) {
         moneyTokenContract = _moneyToken;
         roachContract = _roachContract;
     }
