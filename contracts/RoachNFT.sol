@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 
 import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/ERC721.sol";
 import "./Operators.sol";
+import "./Metadata.sol";
 
 type Genome is uint256;
 
@@ -20,10 +21,13 @@ contract RoachNFT is ERC721, Operators {
     // uint public BIRTH_COOLDOWN = uint256(-1); // max int, will be changed to 7 week later
     uint public BIRTH_COOLDOWN = 1; // for debug only
     uint constant public EMPTY_GENOME = 0;
+    Metadata public metadataContract;
 
     event Birth(uint tokenId);
+    event MetadataContractChanged(Metadata metadataContract);
 
-    constructor() ERC721('Roach Racing Club', 'ROACH') {
+    constructor(Metadata _metadataContract) ERC721('Roach Racing Club', 'ROACH') {
+        _setMetadataContract(_metadataContract);
     }
 
     function mint(address to, Genome genome, uint40[2] calldata parents) external onlyOperator {
@@ -66,5 +70,25 @@ contract RoachNFT is ERC721, Operators {
         emit Birth(tokenId);
     }
 
+
+    // Metadata
+
+    function _setMetadataContract(Metadata newContract) internal {
+        metadataContract = newContract;
+        emit MetadataContractChanged(newContract);
+    }
+
+    function setMetadataContract(Metadata newContract) external onlyOwner {
+        _setMetadataContract(newContract);
+    }
+
+    /**
+     * @dev See {IERC721Metadata-tokenURI}.
+     */
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
+
+        return metadataContract.tokenURI(tokenId);
+    }
 
 }
