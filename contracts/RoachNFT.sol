@@ -5,10 +5,9 @@ pragma solidity ^0.8.10;
 import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/ERC721.sol";
 import "./Operators.sol";
 import "./Metadata.sol";
+import "../interfaces/RoachNFTInterface.sol";
 
-type Genome is uint256;
-
-contract RoachNFT is ERC721, Operators {
+contract RoachNFT is ERC721, Operators, RoachNFTInterface {
 
     struct Roach {
         Genome genome;
@@ -28,12 +27,23 @@ contract RoachNFT is ERC721, Operators {
 
     constructor(Metadata _metadataContract) ERC721('Roach Racing Club', 'ROACH') {
         _setMetadataContract(_metadataContract);
+
+        _mint(address(0x0), 0); // Mythical base parent for all Gen0 roaches
+        roach[0] = Roach(Genome.wrap(EMPTY_GENOME), [uint40(0), uint40(0)], uint40(0), 0);
     }
 
-    function mint(address to, Genome genome, uint40[2] calldata parents) external onlyOperator {
+    function _mintRaw(address to, Genome genome, uint40[2] memory parents) internal {
         uint tokenId = roach.length;
         _mint(to, tokenId);
         roach[tokenId] = Roach(genome, parents, uint40(block.timestamp), 0);
+    }
+
+    function mint(address to, Genome genome, uint40[2] calldata parents) external onlyOperator {
+        _mintRaw(to, genome, parents);
+    }
+
+    function mintGen0(address to) external onlyOperator {
+        _mintRaw(to, Genome.wrap(EMPTY_GENOME), [uint40(0), uint40(0)]);
     }
 
     function setGenome(uint tokenId, Genome genome) external onlyOperator {
