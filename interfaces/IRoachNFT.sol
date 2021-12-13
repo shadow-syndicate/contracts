@@ -9,4 +9,5 @@ interface IRoachNFT {
     function mint(address to, Genome genome, uint40[2] calldata parents) external;
     function mintGen0(address to) external;
     function setGenome(uint tokenId, Genome genome) external;
+
 }

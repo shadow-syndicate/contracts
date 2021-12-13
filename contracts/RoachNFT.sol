@@ -81,12 +81,12 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
             _isBirthColdownPassed(r);
     }
 
+    // anyone can call
     function giveBirth(uint tokenId) external {
         require(_canBorn(tokenId), 'Still egg');
         roach[tokenId].birthTime = uint40(block.timestamp);
         emit Birth(tokenId);
     }
-
 
     // Metadata
 
