@@ -38,19 +38,19 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         roach[0] = Roach(Genome.wrap(EMPTY_GENOME), [uint40(0), uint40(0)], uint40(0), 0);
     }
 
-    function _mintRaw(address to, Genome genome, uint40[2] memory parents) internal {
+    function _mintRaw(address to, Genome genome, uint40[2] memory parents, uint32 traitBonus) internal {
         uint tokenId = roach.length;
         _mint(to, tokenId);
         roach[tokenId] = Roach(genome, parents, uint40(block.timestamp), 0);
-        genomeProviderContract.requestGenome(tokenId);
+        genomeProviderContract.requestGenome(tokenId, traitBonus);
     }
 
     function mint(address to, Genome genome, uint40[2] calldata parents) external onlyOperator {
-        _mintRaw(to, genome, parents);
+        _mintRaw(to, genome, parents, 0);
     }
 
-    function mintGen0(address to) external onlyOperator {
-        _mintRaw(to, Genome.wrap(EMPTY_GENOME), [uint40(0), uint40(0)]);
+    function mintGen0(address to, uint32 traitBonus) external onlyOperator {
+        _mintRaw(to, Genome.wrap(EMPTY_GENOME), [uint40(0), uint40(0)], traitBonus);
     }
 
     function setGenome(uint tokenId, Genome genome) external onlyOperator {

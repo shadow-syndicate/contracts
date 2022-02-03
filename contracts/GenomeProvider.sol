@@ -12,6 +12,7 @@ contract GenomeProvider is IGenomeProvider, VRFConsumerBase {
     bytes32 chainLinkKeyHash;
     uint256 public chainLinkFee;
     mapping (bytes32 => uint) public linkRequestId;
+    mapping (bytes32 => uint32) public requestIdToTraitBonus;
 
     // Chainlink constants: https://docs.chain.link/docs/vrf-contracts/
     constructor(
@@ -28,16 +29,16 @@ contract GenomeProvider is IGenomeProvider, VRFConsumerBase {
         chainLinkKeyHash = _chainLinkKeyHash;
     }
 
-
-    function requestGenome(uint tokenId) external {
+    function requestGenome(uint tokenId, uint32 traitBonus) external {
         require(msg.sender == address(roachContract), 'Access denied');
-        _requestGenome(tokenId);
+        _requestGenome(tokenId, traitBonus);
     }
 
-    function _requestGenome(uint256 _tokenId) internal {
+    function _requestGenome(uint256 _tokenId, uint32 _traitBonus) internal {
         require(LINK.balanceOf(address(this)) >= chainLinkFee, "Not enough LINK to pay fee");
         bytes32 requestId = requestRandomness(chainLinkKeyHash, chainLinkFee);
         linkRequestId[requestId] = _tokenId;
+        requestIdToTraitBonus[requestId] = _traitBonus;
     }
 
     function fulfillRandomness(
@@ -48,19 +49,21 @@ contract GenomeProvider is IGenomeProvider, VRFConsumerBase {
         override
     {
         uint tokenId = linkRequestId[requestId];
+        uint32 traitBonus = requestIdToTraitBonus[requestId];
         delete linkRequestId[requestId];
+        delete requestIdToTraitBonus[requestId];
         // If randomness will be 0, your unlucky tree will not be alive
-        _onGenomeArrived(tokenId, randomness);
+        _onGenomeArrived(tokenId, randomness, traitBonus);
     }
 
-    function _onGenomeArrived(uint256 _tokenId, uint256 _randomness) internal {
+    function _onGenomeArrived(uint256 _tokenId, uint256 _randomness, uint32 traitBonus) internal {
 
-        Genome genome = _normalizeGenome(_randomness);
+        Genome genome = _normalizeGenome(_randomness, traitBonus);
 
         roachContract.setGenome(_tokenId, genome);
     }
 
-    function _normalizeGenome(uint256 _randomness) internal returns (Genome) {
+    function _normalizeGenome(uint256 _randomness, uint32 traitBonus) internal returns (Genome) {
         return Genome.wrap(_randomness); // TODO: fix genome
     }
 
