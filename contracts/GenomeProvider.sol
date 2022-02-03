@@ -58,13 +58,15 @@ contract GenomeProvider is IGenomeProvider, VRFConsumerBase {
 
     function _onGenomeArrived(uint256 _tokenId, uint256 _randomness, uint32 traitBonus) internal {
 
-        Genome genome = _normalizeGenome(_randomness, traitBonus);
+        uint256[] memory genome = _normalizeGenome(_randomness, traitBonus);
 
         roachContract.setGenome(_tokenId, genome);
     }
 
-    function _normalizeGenome(uint256 _randomness, uint32 traitBonus) internal returns (Genome) {
-        return Genome.wrap(_randomness); // TODO: fix genome
+    function _normalizeGenome(uint256 _randomness, uint32 traitBonus) internal returns (uint256[] memory) {
+        uint[] memory result = new uint[](1);
+        result[0] = _randomness;
+        return result; // TODO: fix genome * traitBonus
     }
 
 }

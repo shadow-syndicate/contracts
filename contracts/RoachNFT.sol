@@ -11,16 +11,18 @@ import "../interfaces/IGenomeProvider.sol";
 contract RoachNFT is ERC721, Operators, IRoachNFT {
 
     struct Roach {
-        Genome genome;
+        uint256[] genome;
         uint40[2] parents;
         uint40 creationTime;
         uint40 birthTime;
+        uint40 generation;
+        uint16 resistance; // 1234 = 12.34%
     }
 
     Roach[] public roach;
     // uint public BIRTH_COOLDOWN = uint256(-1); // max int, will be changed to 7 week later
     uint public BIRTH_COOLDOWN = 1; // for debug only
-    uint constant public EMPTY_GENOME = 0;
+    uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
     IGenomeProvider public genomeProviderContract;
 
@@ -35,25 +37,51 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         _setGenomeProviderContract(_genomeProviderContract);
 
         _mint(address(0x0), 0); // Mythical base parent for all Gen0 roaches
-        roach[0] = Roach(Genome.wrap(EMPTY_GENOME), [uint40(0), uint40(0)], uint40(0), 0);
+        roach[0] = Roach(
+            new uint256[](0)/*EMPTY_GENOME*/,
+            [uint40(0), uint40(0)], // parents
+            uint40(0), // creationTime
+            0, // birthTime
+            0, // generation
+            0  // resistance
+        );
     }
 
-    function _mintRaw(address to, Genome genome, uint40[2] memory parents, uint32 traitBonus) internal {
+    function _mintRaw(
+        address to,
+        uint256[] memory genome,
+        uint40[2] memory parents,
+        uint40 generation,
+        uint16 resistance,
+        uint32 traitBonus
+    ) internal {
         uint tokenId = roach.length;
         _mint(to, tokenId);
-        roach[tokenId] = Roach(genome, parents, uint40(block.timestamp), 0);
+        roach[tokenId] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance);
         genomeProviderContract.requestGenome(tokenId, traitBonus);
     }
 
-    function mint(address to, Genome genome, uint40[2] calldata parents) external onlyOperator {
-        _mintRaw(to, genome, parents, 0);
+    function mint(
+        address to,
+        uint256[] calldata genome,
+        uint40[2] calldata parents,
+        uint40 generation,
+        uint16 resistance
+    ) external onlyOperator {
+        _mintRaw(to, genome, parents, generation, resistance, 0);
     }
 
     function mintGen0(address to, uint32 traitBonus) external onlyOperator {
-        _mintRaw(to, Genome.wrap(EMPTY_GENOME), [uint40(0), uint40(0)], traitBonus);
+        _mintRaw(
+            to,
+            new uint256[](0)/*EMPTY_GENOME*/,
+            [uint40(0), uint40(0)], // parents
+            0, // generation
+            GEN0_RESISTANCE,
+            traitBonus);
     }
 
-    function setGenome(uint tokenId, Genome genome) external onlyOperator {
+    function setGenome(uint tokenId, uint256[] calldata genome) external onlyOperator {
         require(_exists(tokenId), "RoachNFT.setGenome: nonexistent token");
         roach[tokenId].genome = genome;
     }
@@ -67,7 +95,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     }
 
     function _isGenomeSet(Roach storage r) internal view returns (bool) {
-        return Genome.unwrap(r.genome) != EMPTY_GENOME;
+        return r.genome.length > 0;
     }
 
     function _isBirthColdownPassed(Roach storage r) internal view returns (bool) {
