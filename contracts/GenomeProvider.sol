@@ -8,7 +8,7 @@ import "smartcontractkit/chainlink@0.10.15/contracts/src/v0.8/VRFConsumerBase.so
 
 contract GenomeProvider is IGenomeProvider, VRFConsumerBase {
 
-    IRoachNFT roachContract;
+    IRoachNFT public roachContract;
     bytes32 chainLinkKeyHash;
     uint256 public chainLinkFee;
     mapping (bytes32 => uint) public linkRequestId;

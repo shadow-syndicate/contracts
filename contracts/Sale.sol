@@ -14,15 +14,15 @@ contract Sale is Operators {
 
     uint constant public ROACH_PRICE = 0.001 ether;
     uint constant public SALE_LIMIT = 10_000;
-    uint STAGE1_START;
-    uint STAGE1_DURATION;
+    uint public STAGE1_START;
+    uint public STAGE1_DURATION;
 
     IERC20 public moneyTokenContract;
     IRoachNFT public roachContract;
     uint public soldCount = 0;
-    mapping(address => uint) soldCountPerAddress;
-    mapping(address => Whitelist) whitelist;
-    mapping(string => uint) syndicateScore;
+    mapping(address => uint) public soldCountPerAddress;
+    mapping(address => Whitelist) public whitelist;
+    mapping(string => uint) public syndicateScore;
 
     // TODO: Whitelist & stages
 
