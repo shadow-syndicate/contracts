@@ -5,7 +5,7 @@ pragma solidity ^0.8.10;
 import "./Operators.sol";
 import "../interfaces/IRoachNFT.sol";
 
-contract Sale is Operators {
+contract GenesisSale is Operators {
 
     struct Whitelist {
         uint16 maxCount;
@@ -14,6 +14,7 @@ contract Sale is Operators {
 
     uint constant public ROACH_PRICE = 0.001 ether;
     uint constant public SALE_LIMIT = 10_000;
+    uint constant public STAGE2_LIMIT_PER_TX = 100;
     uint public STAGE1_START;
     uint public STAGE1_DURATION;
 
@@ -26,27 +27,81 @@ contract Sale is Operators {
 
     // TODO: Whitelist & stages
 
-    constructor(IERC20 _moneyToken, IRoachNFT _roachContract, uint stage1start, uint stage1duration) {
+    constructor(IERC20 _moneyToken, IRoachNFT _roachContract, uint stage1startTime, uint stage1durationSeconds) {
         moneyTokenContract = _moneyToken;
         roachContract = _roachContract;
-        STAGE1_START = stage1start;
-        STAGE1_DURATION = stage1duration;
+        STAGE1_START = stage1startTime;
+        STAGE1_DURATION = stage1durationSeconds;
     }
 
-    function buyStage1(uint count, string calldata syndicate) external {
-        require(STAGE1_START >= block.timestamp, 'Sale stage1 not started');
-        require(STAGE1_START + STAGE1_DURATION < block.timestamp, 'Sale stage1 is over');
+    function isPresaleActive() public view returns (bool) {
+        return STAGE1_START <= block.timestamp
+            && block.timestamp < STAGE1_START + STAGE1_DURATION;
+    }
 
-        uint limit = whitelist[msg.sender].maxCount;
-        require(soldCountPerAddress[msg.sender] + count <= limit, 'Account limit reached');
+    function isSaleStage2Active() public view returns (bool) {
+        return STAGE1_START + STAGE1_DURATION <= block.timestamp
+            && soldCount < SALE_LIMIT;
+    }
+
+    function getSaleStatus(address account) external view returns (
+        bool presaleActive,
+        bool stage2active,
+        uint leftToMint,
+        uint secondsToNextStage,
+        uint price,
+        uint allowedToMintForAccount,
+        uint accountBonus)
+    {
+        presaleActive = isPresaleActive();
+        stage2active = isSaleStage2Active();
+        price = ROACH_PRICE;
+        secondsToNextStage =
+            presaleActive ? STAGE1_START + STAGE1_DURATION - block.timestamp :
+            block.timestamp < STAGE1_START ? STAGE1_START - block.timestamp :
+            0;
+        leftToMint = SALE_LIMIT - soldCount;
+        allowedToMintForAccount =
+            presaleActive ? getAllowedToBuyForAccountOnPresale(account) :
+            stage2active ? getAllowedToBuyOnStage2() :
+            (uint)(0);
+        accountBonus = presaleActive ? getAccountBonusOnPresale(account) : (uint)(0);
+    }
+
+    function getAccountBonusOnPresale(address account) public view returns (uint) {
+        return whitelist[account].traitBonus;
+    }
+
+    function getAllowedToBuyForAccountOnPresale(address account) public view returns (uint) {
+        return whitelist[msg.sender].maxCount - soldCountPerAddress[msg.sender];
+    }
+
+    function getAllowedToBuyOnStage2() public view returns (uint) {
+        return STAGE2_LIMIT_PER_TX;
+    }
+
+    function mint(uint count, string calldata syndicate) external {
+        if (isPresaleActive()) {
+            _mintStage1(count, syndicate);
+        } else {
+            _mintStage2(count, syndicate);
+        }
+    }
+
+    function _mintStage1(uint count, string calldata syndicate) internal {
+        require(STAGE1_START <= block.timestamp, 'Sale stage1 not started');
+        require(block.timestamp < STAGE1_START + STAGE1_DURATION, 'Sale stage1 is over');
+
+        uint leftToMint = getAllowedToBuyForAccountOnPresale(msg.sender);
+        require(leftToMint <= count, 'Account limit reached');
 
         soldCountPerAddress[msg.sender] += count;
         _buy(count, syndicate, whitelist[msg.sender].traitBonus);
     }
 
-    function buyStage2(uint count, string calldata syndicate) external {
-        require(count <= 10, 'Max 10 nft per tx');
-        require(STAGE1_START + STAGE1_DURATION >= block.timestamp, 'Sale stage1 not started');
+    function _mintStage2(uint count, string calldata syndicate) internal {
+        require(count <= STAGE2_LIMIT_PER_TX, 'Limit per tx');
+        require(STAGE1_START + STAGE1_DURATION <= block.timestamp, 'Sale stage2 not started');
         _buy(count, syndicate, 0);
     }
 
@@ -78,7 +133,9 @@ contract Sale is Operators {
         }
     }
 
-    function mint(address to, uint count, uint32 traitBonus) external onlyOperator {
+    /// Admin functions
+
+    function mintOperator(address to, uint count, uint32 traitBonus) external onlyOperator {
         _mint(to, count, traitBonus);
     }
 

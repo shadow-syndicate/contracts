@@ -31,7 +31,7 @@ contract GenomeProvider is IGenomeProvider, VRFConsumerBase {
 
     function requestGenome(uint tokenId, uint32 traitBonus) external {
         require(msg.sender == address(roachContract), 'Access denied');
-        _requestGenome(tokenId, traitBonus);
+        // TODO: _requestGenome(tokenId, traitBonus);
     }
 
     function _requestGenome(uint256 _tokenId, uint32 _traitBonus) internal {

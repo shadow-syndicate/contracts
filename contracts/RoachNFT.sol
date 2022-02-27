@@ -30,21 +30,20 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     event MetadataContractChanged(IMetadata metadataContract);
     event GenomeProviderContractChanged(IGenomeProvider genomeProviderContract);
 
-    constructor(IMetadata _metadataContract, IGenomeProvider _genomeProviderContract)
+    constructor(IMetadata _metadataContract)
         ERC721('Roach Racing Club', 'ROACH')
     {
         _setMetadataContract(_metadataContract);
-        _setGenomeProviderContract(_genomeProviderContract);
 
-        _mint(address(0x0), 0); // Mythical base parent for all Gen0 roaches
-        roach[0] = Roach(
-            new bytes(0)/*EMPTY_GENOME*/,
-            [uint40(0), uint40(0)], // parents
-            uint40(0), // creationTime
-            0, // birthTime
-            0, // generation
-            0  // resistance
-        );
+//        _mint(address(this), 0); // Mythical base parent for all Gen0 roaches
+//        roach[0] = Roach(
+//            new bytes(0)/*EMPTY_GENOME*/,
+//            [uint40(0), uint40(0)], // parents
+//            uint40(0), // creationTime
+//            0, // birthTime
+//            0, // generation
+//            0  // resistance
+//        );
     }
 
     function _mintRaw(

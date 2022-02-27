@@ -12,22 +12,17 @@ import "../interfaces/IMetadata.sol";
  */
 contract Metadata is IMetadata {
     using Strings for uint256;
+    string public baseURI;
+
+    constructor(string memory _baseURI) {
+        baseURI = _baseURI;
+    }
 
     /**
     * @dev See {IERC721Metadata-tokenURI}.
      */
     function tokenURI(uint256 tokenId) external view returns (string memory) {
-        string memory baseURI = _baseURI();
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
-    }
-
-    /**
-     * @dev Base URI for computing {tokenURI}. If set, the resulting URI for each
-     * token will be the concatenation of the `baseURI` and the `tokenId`. Empty
-     * by default, can be overriden in child contracts.
-     */
-    function _baseURI() internal view virtual returns (string memory) {
-        return "https://meta.roachracingclub.com/roach/";
     }
 
 }

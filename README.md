@@ -1,25 +1,6 @@
 ## Roach Racing Club Contracts
 
-## Tests
-We use Brownie framework for developing and unit test. For run tests
-first please [install it](https://eth-brownie.readthedocs.io/en/stable/install.html)
-
-```bash
-brownie pm install OpenZeppelin/openzeppelin-contracts@4.4.0
-brownie pm install smartcontractkit/chainlink@0.10.15
-npm -g i ganache-cli
-brownie test
-```
-
-## Deployment workflow
-Brownie script example:  
-```
-export WEB3_INFURA_PROJECT_ID=<infura_project_id>
-export ETHERSCAN_TOKEN=<etherscan_api_token>
-brownie run ./deploy.py --network=rinkeby
-```
-
-## Contract structure
+## Contracts structure
 
 # RoachNFT
 
@@ -29,9 +10,25 @@ To finalize creating and give birth to Roach token you should
 call giveBirth. There is birth cooldown period (by default 1 week).
 This contract is non-upgradable.
 
-# Sale
+# GensisSale
 
 Operates limited token sale. There can be only 10k Gen0 Roach tokens sold.
+
+Functions:
+```
+function getSaleStatus(address account) public view returns (
+    bool presaleActive,
+    bool stage2active,
+    uint leftToMint,
+    uint secondsToNextStage,
+    uint price,
+    uint allowedToMintForAccount,
+    uint accountBonus)
+```
+
+```
+function mint(uint count, string calldata syndicate)
+```
 
 # GenomeProvider
 
@@ -45,3 +42,39 @@ You can't give birth to Roach token while genome is empty.
 Upgradable contract that provides Metadata for Roach tokens. 
 Full metadata will be available only after Roach is born.
 
+## Deployment workflow
+
+### Environment setup 
+We use [Brownie](https://eth-brownie.readthedocs.io/en/stable/install.html) framework for testing and develoyment.
+
+```bash
+pip install eth-brownie
+brownie pm install OpenZeppelin/openzeppelin-contracts@4.4.0
+brownie pm install smartcontractkit/chainlink@0.10.15
+npm -g i ganache-cli
+```
+
+### Testing
+
+```
+brownie test
+```
+
+## Testnet deployment
+Setup environment variables:
+```
+export WEB3_INFURA_PROJECT_ID=<infura_project_id>
+export ETHERSCAN_TOKEN=<etherscan_api_token>
+export POLYGONSCAN_TOKEN=<polygoncan_api_token>
+```
+For Polygon testnet (Mumbai): 
+```
+brownie networks add Polygon mumbai host=https://polygon-mumbai.g.alchemy.com/v2/$KEY chainid=80001 explorer=https://mumbai.polygonscan.com/
+brownie run ./deploy.py --network=mumbai
+```
+For Rinkeby testnet:
+```
+brownie run ./deploy.py --network=rinkeby
+```
+You need to request [testnet LINK](https://faucets.chain.link/rinkeby) to GenomeProvider contract.
+To mint tokens on GenesisSale you need to request [testnet WETH](https://faucets.chain.link/rinkeby) to your address.
