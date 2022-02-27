@@ -12,7 +12,7 @@ contract GenesisSale is Operators {
         uint32 traitBonus; // decimals 2, 12 mean 12% bonus
     }
 
-    uint constant public ROACH_PRICE = 0.001 ether;
+    uint public ROACH_PRICE = 0.001 ether;
     uint constant public SALE_LIMIT = 10_000;
     uint constant public STAGE2_LIMIT_PER_TX = 100;
     uint public STAGE1_START;
@@ -25,13 +25,18 @@ contract GenesisSale is Operators {
     mapping(address => Whitelist) public whitelist;
     mapping(string => uint) public syndicateScore;
 
-    // TODO: Whitelist & stages
-
-    constructor(IERC20 _moneyToken, IRoachNFT _roachContract, uint stage1startTime, uint stage1durationSeconds) {
+    constructor(
+        IERC20 _moneyToken,
+        IRoachNFT _roachContract,
+        uint stage1startTime,
+        uint stage1durationSeconds,
+        uint price)
+    {
         moneyTokenContract = _moneyToken;
         roachContract = _roachContract;
         STAGE1_START = stage1startTime;
         STAGE1_DURATION = stage1durationSeconds;
+        ROACH_PRICE = price;
     }
 
     function isPresaleActive() public view returns (bool) {
@@ -73,7 +78,7 @@ contract GenesisSale is Operators {
     }
 
     function getAllowedToBuyForAccountOnPresale(address account) public view returns (uint) {
-        return whitelist[msg.sender].maxCount - soldCountPerAddress[msg.sender];
+        return whitelist[account].maxCount - soldCountPerAddress[account];
     }
 
     function getAllowedToBuyOnStage2() public view returns (uint) {
@@ -82,30 +87,32 @@ contract GenesisSale is Operators {
 
     function mint(uint count, string calldata syndicate) external {
         if (isPresaleActive()) {
-            _mintStage1(count, syndicate);
+            _mintStage1(msg.sender, count, syndicate);
+        } else if (isSaleStage2Active()) {
+            _mintStage2(msg.sender, count, syndicate);
         } else {
-            _mintStage2(count, syndicate);
+            revert("Genesis sale not started yet");
         }
     }
 
-    function _mintStage1(uint count, string calldata syndicate) internal {
+    function _mintStage1(address account, uint count, string calldata syndicate) internal {
         require(STAGE1_START <= block.timestamp, 'Sale stage1 not started');
         require(block.timestamp < STAGE1_START + STAGE1_DURATION, 'Sale stage1 is over');
 
-        uint leftToMint = getAllowedToBuyForAccountOnPresale(msg.sender);
-        require(leftToMint <= count, 'Account limit reached');
+        uint leftToMint = getAllowedToBuyForAccountOnPresale(account);
+        require(count <= leftToMint, 'Account limit reached');
 
-        soldCountPerAddress[msg.sender] += count;
-        _buy(count, syndicate, whitelist[msg.sender].traitBonus);
+        soldCountPerAddress[account] += count;
+        _buy(account, count, syndicate, whitelist[account].traitBonus);
     }
 
-    function _mintStage2(uint count, string calldata syndicate) internal {
+    function _mintStage2(address account, uint count, string calldata syndicate) internal {
         require(count <= STAGE2_LIMIT_PER_TX, 'Limit per tx');
         require(STAGE1_START + STAGE1_DURATION <= block.timestamp, 'Sale stage2 not started');
-        _buy(count, syndicate, 0);
+        _buy(account, count, syndicate, 0);
     }
 
-    function _buy(uint count, string calldata syndicate, uint32 traitBonus) internal {
+    function _buy(address account, uint count, string calldata syndicate, uint32 traitBonus) internal {
         uint needMoney = ROACH_PRICE * count;
 
         require(count > 0, 'Min count is 1');
@@ -115,28 +122,28 @@ contract GenesisSale is Operators {
         if (soldCount + count > SALE_LIMIT) {
             count = SALE_LIMIT - soldCount; // allow to buy left tokens
         }
-        require(moneyTokenContract.balanceOf(msg.sender) >= needMoney, "Insufficient money!");
+        require(moneyTokenContract.balanceOf(account) >= needMoney, "Insufficient money");
 
         moneyTokenContract.transferFrom(
-            msg.sender,
+            account,
             address(this),
             needMoney
         );
         syndicateScore[syndicate] += count;
-        _mint(msg.sender, count, traitBonus);
+        _mintRaw(account, count, traitBonus);
     }
 
-    function _mint(address to, uint count, uint32 traitBonus) internal {
+    function _mintRaw(address to, uint count, uint32 traitBonus) internal {
         soldCount += count;
         for (uint i = 0; i < count; i++) {
-            roachContract.mintGen0(msg.sender, traitBonus);
+            roachContract.mintGen0(to, traitBonus);
         }
     }
 
     /// Admin functions
 
     function mintOperator(address to, uint count, uint32 traitBonus) external onlyOperator {
-        _mint(to, count, traitBonus);
+        _mintRaw(to, count, traitBonus);
     }
 
     function setWhitelistAddress(address account, uint16 maxCount, uint32 traitBonus) external onlyOperator {

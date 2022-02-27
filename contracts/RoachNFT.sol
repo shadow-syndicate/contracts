@@ -36,14 +36,14 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         _setMetadataContract(_metadataContract);
 
 //        _mint(address(this), 0); // Mythical base parent for all Gen0 roaches
-//        roach[0] = Roach(
-//            new bytes(0)/*EMPTY_GENOME*/,
-//            [uint40(0), uint40(0)], // parents
-//            uint40(0), // creationTime
-//            0, // birthTime
-//            0, // generation
-//            0  // resistance
-//        );
+        roach.push(Roach(
+            new bytes(0)/*EMPTY_GENOME*/,
+            [uint40(0), uint40(0)], // parents
+            uint40(0), // creationTime
+            0, // birthTime
+            0, // generation
+            0  // resistance
+        ));
     }
 
     function _mintRaw(
@@ -56,7 +56,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     ) internal {
         uint tokenId = roach.length;
         _mint(to, tokenId);
-        roach[tokenId] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance);
+        roach.push(Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance));
         genomeProviderContract.requestGenome(tokenId, traitBonus);
     }
 

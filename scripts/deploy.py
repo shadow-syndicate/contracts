@@ -18,6 +18,7 @@ KEY_HASH="0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc"
 FEE=0.25*10e18
 SALE_TOKEN="0xc778417e063141139fce010982780140aa0cd5ab" # WETH
 
+ROACH_PRICE=1e15
 PUBLISH_SOURCES=True
 
 private_key=os.getenv('DEPLOYER_PRIVATE_KEY')
@@ -33,16 +34,17 @@ def main():
         publish_source=PUBLISH_SOURCES
     )
     genome_provider = GenomeProvider.deploy(roach_contract,
-                                      LINK_TOKEN,
-                                      VRF_COORDINATOR,
-                                      KEY_HASH,
-                                      FEE, {'from':accounts[0]},
+                                      # LINK_TOKEN,
+                                      # VRF_COORDINATOR,
+                                      # KEY_HASH,
+                                      # FEE,
+                                            {'from':accounts[0]},
             publish_source=PUBLISH_SOURCES
     )
     roach_contract.setGenomeProviderContract(genome_provider, {'from':accounts[0], "required_confs": 0})
 
-    #roach_contract = RoachNFT.at("0xbCf98eC6A8158cC4af59b28CE16E9E0c8677cd37")
-    genesis_sale = GenesisSale.deploy(SALE_TOKEN, roach_contract, round(time.time()), 60*60*24, {'from':accounts[0]},
+    # roach_contract = RoachNFT.at("0x9aCA19f459D939d27D75a40a5aD9D64E2eB697bd")
+    genesis_sale = GenesisSale.deploy(SALE_TOKEN, roach_contract, round(time.time()), 60*60*24, ROACH_PRICE, {'from':accounts[0]},
                                      publish_source=PUBLISH_SOURCES
                                      )
     roach_contract.addOperator(genesis_sale, {'from':accounts[0], "required_confs": 0})
