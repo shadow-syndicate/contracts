@@ -16,9 +16,8 @@ Operates limited token sale. There can be only 10k Gen0 Roach tokens sold.
 
 Functions:
 ```
-function getSaleStatus(address account) public view returns (
-    bool presaleActive,
-    bool stage2active,
+function getSaleStatus(address account) external view returns (
+    uint stage,
     uint leftToMint,
     uint secondsToNextStage,
     uint price,
