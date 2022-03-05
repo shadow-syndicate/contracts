@@ -43,6 +43,54 @@ contract GenesisSale is Operators {
         TOTAL_TOKENS_ON_SALE = totalTokensOnSale;
     }
 
+    /// @notice Takes payment and mints new roaches on Genesis Sale
+    /// @dev function works on both Presale and Genesis sale stages
+    /// @param count The number of roach to mint
+    /// @param syndicate (Optional) Syndicate name, that player wants join to. Selected syndicate will receive a bonus.
+    function mint(uint count, string calldata syndicate) external {
+        uint stage = getSaleStage();
+        if (stage == 1) {
+            _mintStage1(msg.sender, count, syndicate);
+        } else if (stage == 2) {
+            _mintStage2(msg.sender, count, syndicate);
+        } else if (stage == 0) {
+            revert("Sale not started yet");
+        } else {
+            revert("Sale is over");
+        }
+    }
+
+    /// @notice Returns current sale status
+    /// @param account Selected buyer address
+    /// @return stage One of number 0..3. 0 - presale not started. 1 - Presale. 2 - Genesis sale. 3 - sale is over.
+    /// @return leftToMint Left roaches to mint
+    /// @return nextStageTimestamp UTC timestamp of current stage finish and next stage start. Always 0 for for stages 2 and 3.
+    /// @return price One roach price in WETH.
+    /// @return allowedToMint For stage 1 - left roaches to mint for selected buyer address. For stage 2 - max count for one tx.
+    /// @return accountBonus Selected buyer address bonus for rare trait probability
+    function getSaleStatus(address account) external view returns (
+        uint stage,
+        uint leftToMint,
+        uint nextStageTimestamp,
+        uint price,
+        uint allowedToMint,
+        uint accountBonus)
+    {
+        stage = getSaleStage();
+
+        price = ROACH_PRICE;
+        nextStageTimestamp =
+            stage == 0 ? STAGE1_START :
+            stage == 1 ? STAGE1_START + STAGE1_DURATION :
+            0;
+        leftToMint = TOTAL_TOKENS_ON_SALE - soldCount;
+        allowedToMint =
+            stage == 1 ? getAllowedToBuyForAccountOnPresale(account) :
+            stage == 2 ? getAllowedToBuyOnStage2() :
+            (uint)(0);
+        accountBonus = stage <= 1 ? getAccountBonusOnPresale(account) : (uint)(0);
+    }
+
     function isPresaleActive() public view returns (bool) {
         return STAGE1_START <= block.timestamp
             && block.timestamp < STAGE1_START + STAGE1_DURATION;
@@ -60,29 +108,6 @@ contract GenesisSale is Operators {
             3;
     }
 
-    function getSaleStatus(address account) external view returns (
-        uint stage,
-        uint leftToMint,
-        uint secondsToNextStage,
-        uint price,
-        uint allowedToMintForAccount,
-        uint accountBonus)
-    {
-        stage = getSaleStage();
-
-        price = ROACH_PRICE;
-        secondsToNextStage =
-            stage == 1 ? STAGE1_START + STAGE1_DURATION - block.timestamp :
-            stage == 0 ? STAGE1_START - block.timestamp :
-            0;
-        leftToMint = TOTAL_TOKENS_ON_SALE - soldCount;
-        allowedToMintForAccount =
-            stage == 1 ? getAllowedToBuyForAccountOnPresale(account) :
-            stage == 2 ? getAllowedToBuyOnStage2() :
-            (uint)(0);
-        accountBonus = stage <= 1 ? getAccountBonusOnPresale(account) : (uint)(0);
-    }
-
     function getAccountBonusOnPresale(address account) public view returns (uint) {
         return whitelist[account].traitBonus;
     }
@@ -91,21 +116,8 @@ contract GenesisSale is Operators {
         return whitelist[account].maxCount - soldCountPerAddress[account];
     }
 
-    function getAllowedToBuyOnStage2() public view returns (uint) {
+    function getAllowedToBuyOnStage2() public pure returns (uint) {
         return STAGE2_LIMIT_PER_TX;
-    }
-
-    function mint(uint count, string calldata syndicate) external {
-        uint stage = getSaleStage();
-        if (stage == 1) {
-            _mintStage1(msg.sender, count, syndicate);
-        } else if (stage == 2) {
-            _mintStage2(msg.sender, count, syndicate);
-        } else if (stage == 0) {
-            revert("Sale not started yet");
-        } else {
-            revert("Sale is over");
-        }
     }
 
     function _mintStage1(address account, uint count, string calldata syndicate) internal {

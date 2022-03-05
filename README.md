@@ -19,7 +19,7 @@ Functions:
 function getSaleStatus(address account) external view returns (
     uint stage,
     uint leftToMint,
-    uint secondsToNextStage,
+    uint nextStageTimestamp,
     uint price,
     uint allowedToMintForAccount,
     uint accountBonus)

@@ -27,26 +27,28 @@ accounts.add(private_key)
 def main():
     print('Deployer account= {}'.format(accounts[0]))
 
-    metadata = Metadata.deploy("https://metadev.roachracingclub.com/roach/", {'from':accounts[0]},
-        publish_source=PUBLISH_SOURCES
-    )
-    roach_contract = RoachNFT.deploy(metadata, {'from':accounts[0]},
-        publish_source=PUBLISH_SOURCES
-    )
-    genome_provider = GenomeProvider.deploy(roach_contract,
-                                      # LINK_TOKEN,
-                                      # VRF_COORDINATOR,
-                                      # KEY_HASH,
-                                      # FEE,
-                                            {'from':accounts[0]},
-            publish_source=PUBLISH_SOURCES
-    )
-    roach_contract.setGenomeProviderContract(genome_provider, {'from':accounts[0], "required_confs": 0})
+    # metadata = Metadata.deploy("https://metadev.roachracingclub.com/roach/", {'from':accounts[0]},
+    #     publish_source=PUBLISH_SOURCES
+    # )
+    # roach_contract = RoachNFT.deploy(metadata, {'from':accounts[0]},
+    #     publish_source=PUBLISH_SOURCES
+    # )
+    # genome_provider = GenomeProvider.deploy(roach_contract,
+    #                                   # LINK_TOKEN,
+    #                                   # VRF_COORDINATOR,
+    #                                   # KEY_HASH,
+    #                                   # FEE,
+    #                                         {'from':accounts[0]},
+    #         publish_source=PUBLISH_SOURCES
+    # )
+    # roach_contract.setGenomeProviderContract(genome_provider, {'from':accounts[0], "required_confs": 0})
 
-    # roach_contract = RoachNFT.at("0x9aCA19f459D939d27D75a40a5aD9D64E2eB697bd")
-    genesis_sale = GenesisSale.deploy(SALE_TOKEN, roach_contract, round(time.time()), 60*60*24, ROACH_PRICE, {'from':accounts[0]},
-                                     publish_source=PUBLISH_SOURCES
-                                     )
+    roach_contract = RoachNFT.at("0x3Ad749b95574b656D200813CaF10FF9aB4E9dB0a")
+
+    genesis_sale = GenesisSaleDebug.deploy(SALE_TOKEN, roach_contract, round(time.time()), 60*60*24, ROACH_PRICE, 10_000,
+                                           {'from':accounts[0]},
+                                            publish_source=PUBLISH_SOURCES)
     roach_contract.addOperator(genesis_sale, {'from':accounts[0], "required_confs": 0})
     genesis_sale.setWhitelistAddress("0x19D6580D0652152370E17E2C48aC85c1249c129D", 50, 15, {'from':accounts[0], "required_confs": 0})
-    genesis_sale.setWhitelistAddress("0x19816Aa1Ae9f112f1b0DEd666E9f46807C5a47CF", 50, 15, {'from':accounts[0], "required_confs": 0})
+    genesis_sale.setWhitelistAddress("0x19816Aa1Ae9f112f1b0DEd666E9f46807C5a47CF", 35, 25, {'from':accounts[0], "required_confs": 0})
+    genesis_sale.addOperator("0x19816Aa1Ae9f112f1b0DEd666E9f46807C5a47CF", {'from':accounts[0], "required_confs": 0})

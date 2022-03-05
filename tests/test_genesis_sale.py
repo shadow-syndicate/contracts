@@ -7,12 +7,15 @@ LOGGER = logging.getLogger(__name__)
 
 def test_presale_happy_path(accounts, GenesisSale, weth, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSale, weth, roach_nft, round(time.time()) - 1, 60*60*24, 100, 10_000)
+    stage1time = round(time.time()) - 1
+    stage1duration = 60 * 60 * 24
+    genesis_sale = accounts[0].deploy(GenesisSale, weth, roach_nft, stage1time, stage1duration, 100, 10_000)
     roach_nft.addOperator(genesis_sale)
 
     status = genesis_sale.getSaleStatus(buyer)
     assert status[0] == 1, "presale is active"
     assert status[1] == 10_000, "left to mint"
+    assert status[2] == stage1time + stage1duration, "stage1 finish time"
     assert status[4] == 0, "allowedToMintForAccount"
 
     assert roach_nft.balanceOf(buyer) == 0
@@ -56,7 +59,8 @@ def test_presale_happy_path(accounts, GenesisSale, weth, roach_nft):
 
 def test_sale_stage2_happy_path(accounts, GenesisSale, weth, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSale, weth, roach_nft, round(time.time()) - 10, 5, 100, 10_000)
+    stage1start = round(time.time()) - 10
+    genesis_sale = accounts[0].deploy(GenesisSale, weth, roach_nft, stage1start, 5, 100, 10_000)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
@@ -74,14 +78,16 @@ def test_sale_stage2_happy_path(accounts, GenesisSale, weth, roach_nft):
     assert roach_nft.balanceOf(buyer) == 1
 
     status = genesis_sale.getSaleStatus(buyer)
-    assert status[0] == 2, "stage2 not started"
+    assert status[0] == 2, "stage2 started"
+    assert status[2] == 0, "stage2 no finish time"
 
     with reverts("Limit per tx"):
         genesis_sale.mint(101, "", {'from':buyer})
 
 def test_sale_not_started(accounts, GenesisSale, weth, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSale, weth, roach_nft, round(time.time()) + 10, 5, 100, 10_000)
+    stage1time = round(time.time()) + 10
+    genesis_sale = accounts[0].deploy(GenesisSale, weth, roach_nft, stage1time, 5, 100, 10_000)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
@@ -90,6 +96,7 @@ def test_sale_not_started(accounts, GenesisSale, weth, roach_nft):
 
     status = genesis_sale.getSaleStatus(buyer)
     assert status[0] == 0, "presale not started"
+    assert status[2] == stage1time, "stage1 start time"
 
 def test_sale_ended(accounts, GenesisSale, weth, roach_nft):
     buyer = accounts[1]
@@ -102,6 +109,7 @@ def test_sale_ended(accounts, GenesisSale, weth, roach_nft):
 
     status = genesis_sale.getSaleStatus(buyer)
     assert status[0] == 2, "stage2 active"
+    assert status[2] == 0, "no finish time"
 
     genesis_sale.mint(3, "", {'from':buyer})
 
@@ -135,3 +143,7 @@ def test_buy_left_tokens(accounts, GenesisSale, weth, roach_nft):
 
     balanceAfter = weth.balanceOf(buyer)
     assert balanceBefore - balanceAfter == 3*100, 'Take money only for 3 roaches'
+
+
+    # TODO: buy all on presale
+
