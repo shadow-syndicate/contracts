@@ -144,6 +144,47 @@ def test_buy_left_tokens(accounts, GenesisSale, weth, roach_nft):
     balanceAfter = weth.balanceOf(buyer)
     assert balanceBefore - balanceAfter == 3*100, 'Take money only for 3 roaches'
 
+def test_not_enough_money(accounts, GenesisSale, weth, roach_nft):
+    buyer = accounts[1]
+    genesis_sale = accounts[0].deploy(GenesisSale, weth, roach_nft, round(time.time()) - 10, 50, 100, 3)
+    roach_nft.addOperator(genesis_sale)
+    genesis_sale.setWhitelistAddress(buyer, 5, 10, {'from':accounts[0]})
 
-    # TODO: buy all on presale
+    assert roach_nft.balanceOf(buyer) == 0
+
+    weth.transfer(buyer, 250)
+    weth.approve(genesis_sale, 1e18, {'from':buyer})
+    balanceBefore = weth.balanceOf(buyer)
+
+    genesis_sale.mint(5, "", {'from':buyer})
+
+    assert roach_nft.balanceOf(buyer) == 2, 'Buy only 2 of 5 requested because of low money'
+
+    balanceAfter = weth.balanceOf(buyer)
+    assert balanceBefore - balanceAfter == 2*100, 'Take money only for 2 roaches'
+
+    status = genesis_sale.getSaleStatus(buyer)
+    assert status[4] == 3, "left to mint for acount"
+
+    with reverts("Insufficient money"):
+        genesis_sale.mint(1, "", {'from':buyer})
+
+def test_buy_all_tokens_on_presale(accounts, GenesisSale, weth, roach_nft):
+    buyer = accounts[1]
+    genesis_sale = accounts[0].deploy(GenesisSale, weth, roach_nft, round(time.time()) - 10, 50, 100, 3)
+    roach_nft.addOperator(genesis_sale)
+    genesis_sale.setWhitelistAddress(buyer, 5, 10, {'from':accounts[0]})
+
+    assert roach_nft.balanceOf(buyer) == 0
+
+    weth.transfer(buyer, 300)
+    weth.approve(genesis_sale, 1e18, {'from':buyer})
+    balanceBefore = weth.balanceOf(buyer)
+
+    genesis_sale.mint(3, "", {'from':buyer})
+
+    status = genesis_sale.getSaleStatus(buyer)
+    assert status[0] == 3, "Sale is over"
+    assert status[1] == 0, "left to mint"
+
 

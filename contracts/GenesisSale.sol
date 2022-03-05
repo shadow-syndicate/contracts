@@ -93,12 +93,13 @@ contract GenesisSale is Operators {
 
     function isPresaleActive() public view returns (bool) {
         return STAGE1_START <= block.timestamp
-            && block.timestamp < STAGE1_START + STAGE1_DURATION;
+            && block.timestamp < STAGE1_START + STAGE1_DURATION
+            && soldCount < TOTAL_TOKENS_ON_SALE;
     }
 
     function isSaleStage2Active() public view returns (bool) {
         return STAGE1_START + STAGE1_DURATION <= block.timestamp
-        && soldCount < TOTAL_TOKENS_ON_SALE;
+            && soldCount < TOTAL_TOKENS_ON_SALE;
     }
 
     function getSaleStage() public view returns (uint) {
@@ -121,19 +122,14 @@ contract GenesisSale is Operators {
     }
 
     function _mintStage1(address account, uint count, string calldata syndicate) internal {
-//        require(STAGE1_START <= block.timestamp, 'Sale stage1 not started');
-//        require(block.timestamp < STAGE1_START + STAGE1_DURATION, 'Sale stage1 is over');
-
         uint leftToMint = getAllowedToBuyForAccountOnPresale(account);
         require(count <= leftToMint, 'Account limit reached');
 
-        soldCountPerAddress[account] += count;
         _buy(account, count, syndicate, whitelist[account].traitBonus);
     }
 
     function _mintStage2(address account, uint count, string calldata syndicate) internal {
         require(count <= STAGE2_LIMIT_PER_TX, 'Limit per tx');
-//        require(STAGE1_START + STAGE1_DURATION <= block.timestamp, 'Sale stage2 not started');
         _buy(account, count, syndicate, 0);
     }
 
@@ -143,7 +139,13 @@ contract GenesisSale is Operators {
             count = TOTAL_TOKENS_ON_SALE - soldCount; // allow to buy left tokens
         }
         uint needMoney = ROACH_PRICE * count;
-        require(moneyTokenContract.balanceOf(account) >= needMoney, "Insufficient money");
+        uint balance = moneyTokenContract.balanceOf(account);
+        if (balance < needMoney) {
+            // Allow to buy roaches when money are less than needed for requested count
+            count = balance / ROACH_PRICE;
+            needMoney = ROACH_PRICE * count;
+            require(count > 0, "Insufficient money");
+        }
 
         moneyTokenContract.transferFrom(
             account,
@@ -151,6 +153,7 @@ contract GenesisSale is Operators {
             needMoney
         );
         syndicateScore[syndicate] += count;
+        soldCountPerAddress[account] += count;
         emit Purchase(account, count, traitBonus, syndicate);
         _mintRaw(account, count, traitBonus);
     }
