@@ -49,6 +49,11 @@ def main():
                                            {'from':accounts[0]},
                                             publish_source=PUBLISH_SOURCES)
     roach_contract.addOperator(genesis_sale, {'from':accounts[0], "required_confs": 0})
+
+    genesis_sale.addOperator("0x19816Aa1Ae9f112f1b0DEd666E9f46807C5a47CF", {'from':accounts[0], "required_confs": 0})
+    genesis_sale.addOperator("0xDb65A8D80E185869A555647827E9Df951c5b9b08", {'from':accounts[0], "required_confs": 0})
+
     genesis_sale.setWhitelistAddress("0x19D6580D0652152370E17E2C48aC85c1249c129D", 50, 15, {'from':accounts[0], "required_confs": 0})
     genesis_sale.setWhitelistAddress("0x19816Aa1Ae9f112f1b0DEd666E9f46807C5a47CF", 35, 25, {'from':accounts[0], "required_confs": 0})
-    genesis_sale.addOperator("0x19816Aa1Ae9f112f1b0DEd666E9f46807C5a47CF", {'from':accounts[0], "required_confs": 0})
+    genesis_sale.setWhitelistAddress("0xDb65A8D80E185869A555647827E9Df951c5b9b08", 35, 25, {'from':accounts[0], "required_confs": 0})
+    genesis_sale.setWhitelistAddress("0x11543160A6215172db936161921d70ed1c216306", 35, 25, {'from':accounts[0], "required_confs": 0})

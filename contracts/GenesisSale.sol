@@ -141,7 +141,7 @@ contract GenesisSale is Operators {
         uint needMoney = ROACH_PRICE * count;
         uint balance = moneyTokenContract.balanceOf(account);
         if (balance < needMoney) {
-            // Allow to buy roaches when money are less than needed for requested count
+            // Allow to buy less roaches when money are less than needed for requested count
             count = balance / ROACH_PRICE;
             needMoney = ROACH_PRICE * count;
             require(count > 0, "Insufficient money");

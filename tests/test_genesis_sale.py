@@ -1,4 +1,3 @@
-import pytest
 import logging
 import time
 from brownie import Wei, reverts

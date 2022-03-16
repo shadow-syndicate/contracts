@@ -16,13 +16,15 @@ contract GenesisSaleDebug is GenesisSale {
         GenesisSale(_moneyToken, _roachContract, stage1startTime, stage1durationSeconds, price, totalTokensOnSale)
     {
     }
-    function setStage0() external onlyOperator {
-        STAGE1_START = block.timestamp + 60*60;
+
+    function setStage0(uint duration) external onlyOperator {
+        STAGE1_START = block.timestamp + duration;
         soldCount = 0;
     }
 
-    function setStage1() external onlyOperator {
+    function setStage1(uint duration) external onlyOperator {
         STAGE1_START = block.timestamp;
+        STAGE1_DURATION = duration;
         soldCount = 0;
     }
 
