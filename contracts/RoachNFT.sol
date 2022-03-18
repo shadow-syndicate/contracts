@@ -46,9 +46,34 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         ));
     }
 
-    function _mintRaw(
+    function getRoach(uint roachId)
+        external view
+        returns (
+            bytes memory genome,
+            uint40[2] memory parents,
+            uint40 creationTime,
+            uint40 birthTime,
+            uint40 generation,
+            uint16 resistance,
+            string memory name)
+    {
+        require(roachId < roach.length, "Non existing token");
+        Roach storage r = roach[roachId];
+        genome = r.genome;
+        parents = r.parents;
+        creationTime = r.creationTime;
+        birthTime = r.birthTime;
+        generation = r.generation;
+        resistance = r.resistance;
+        name = metadataContract.getName(roachId);
+    }
+
+    function lastRoachId() external view returns (uint) {
+        return roach.length - 1;
+    }
+
+    function _mintAndRequestGenome(
         address to,
-        bytes memory genome,
         uint40[2] memory parents,
         uint40 generation,
         uint16 resistance,
@@ -56,7 +81,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     ) internal {
         uint tokenId = roach.length;
         _mint(to, tokenId);
-        roach.push(Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance));
+        roach.push(Roach(new bytes(0)/*EMPTY_GENOME*/, parents, uint40(block.timestamp), 0, generation, resistance));
         genomeProviderContract.requestGenome(tokenId, traitBonus);
     }
 
@@ -67,13 +92,14 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         uint40 generation,
         uint16 resistance
     ) external onlyOperator {
-        _mintRaw(to, genome, parents, generation, resistance, 0);
+        uint tokenId = roach.length;
+        _mint(to, tokenId);
+        roach.push(Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance));
     }
 
     function mintGen0(address to, uint32 traitBonus) external onlyOperator {
-        _mintRaw(
+        _mintAndRequestGenome(
             to,
-            new bytes(0)/*EMPTY_GENOME*/,
             [uint40(0), uint40(0)], // parents
             0, // generation
             GEN0_RESISTANCE,

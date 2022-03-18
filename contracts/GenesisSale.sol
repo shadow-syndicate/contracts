@@ -25,7 +25,7 @@ contract GenesisSale is Operators {
     mapping(address => Whitelist) public whitelist;
     mapping(string => uint) public syndicateScore;
 
-    event Purchase(address indexed account, uint count, uint traitBonus, string syndicate);
+    event Purchase(address indexed account, uint count, uint traitBonus, string indexed syndicate);
 
     constructor(
         IERC20 _moneyToken,
@@ -70,7 +70,7 @@ contract GenesisSale is Operators {
     /// @return accountBonus Selected buyer address bonus for rare trait probability
     function getSaleStatus(address account) external view returns (
         uint stage,
-        uint leftToMint,
+        int leftToMint,
         uint nextStageTimestamp,
         uint price,
         uint allowedToMint,
@@ -83,7 +83,7 @@ contract GenesisSale is Operators {
             stage == 0 ? STAGE1_START :
             stage == 1 ? STAGE1_START + STAGE1_DURATION :
             0;
-        leftToMint = TOTAL_TOKENS_ON_SALE - soldCount;
+        leftToMint = int(TOTAL_TOKENS_ON_SALE) - int(soldCount);
         allowedToMint =
             stage == 1 ? getAllowedToBuyForAccountOnPresale(account) :
             stage == 2 ? getAllowedToBuyOnStage2() :

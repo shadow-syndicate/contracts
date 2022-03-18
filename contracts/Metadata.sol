@@ -25,4 +25,8 @@ contract Metadata is IMetadata {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
+    function getName(uint256 tokenId) external view returns (string memory) {
+        return ""; // TODO:
+    }
+
 }
