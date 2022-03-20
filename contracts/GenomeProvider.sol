@@ -18,7 +18,7 @@ contract GenomeProvider is IGenomeProvider, Operators {
         uint[] weightMaxBonus;
     }
 
-    mapping(uint => TraitWeight) public traitWeight; // slot -> array of trait weight
+    mapping(uint => TraitWeight) public traits; // slot -> array of trait weight
 
     constructor(IRoachNFT _roachContract) {
         roachContract = _roachContract;
@@ -29,14 +29,14 @@ contract GenomeProvider is IGenomeProvider, Operators {
         _requestGenome(tokenId, traitBonus);
     }
 
-    function _requestGenome(uint256 _tokenId, uint32 _traitBonus) internal virtual {
-        uint randomSeed = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender)));
-        _onGenomeArrived(_tokenId, randomSeed, _traitBonus);
-    }
-
     function _onGenomeArrived(uint256 _tokenId, uint256 _randomness, uint32 _traitBonus) internal {
         bytes memory genome = _normalizeGenome(_randomness, _traitBonus);
         roachContract.setGenome(_tokenId, genome);
+    }
+
+    function _requestGenome(uint256 _tokenId, uint32 _traitBonus) internal virtual {
+        uint randomSeed = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender)));
+        _onGenomeArrived(_tokenId, randomSeed, _traitBonus);
     }
 
     function setTraitWeight(uint traitType, uint[] calldata _traitWeight, uint[] calldata _traitWeightMaxBonus)
@@ -48,14 +48,14 @@ contract GenomeProvider is IGenomeProvider, Operators {
         for (uint i = 0; i < _traitWeight.length; i++) {
             sum += _traitWeight[i];
         }
-        traitWeight[traitType] = TraitWeight(sum, _traitWeight, _traitWeightMaxBonus);
+        traits[traitType] = TraitWeight(sum, _traitWeight, _traitWeightMaxBonus);
     }
 
     function getWeightedRandom(uint traitType, uint randomSeed, uint bonus)
         internal view
         returns (uint choice, uint newRandomSeed)
     {
-        TraitWeight storage w = traitWeight[traitType];
+        TraitWeight storage w = traits[traitType];
         uint div = w.sum * MAX_BONUS;
         uint r = randomSeed % div;
         uint i = 0;
@@ -83,7 +83,7 @@ contract GenomeProvider is IGenomeProvider, Operators {
             result[i] = bytes1(uint8(_randomness & 0xFF));
             _randomness >>= 8;
         }
-        return result; // TODO: traitBonus
+        return result;
     }
 
 }

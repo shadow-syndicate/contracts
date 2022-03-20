@@ -26,7 +26,7 @@ contract Metadata is IMetadata {
     }
 
     function getName(uint256 tokenId) external view returns (string memory) {
-        return ""; // TODO:
+        return "Roach";
     }
 
 }

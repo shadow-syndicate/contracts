@@ -10,15 +10,15 @@ contract GenomeProviderTest is GenomeProvider {
     }
 
     function getTraitWeightSum(uint traitId) external view returns (uint) {
-        return traitWeight[traitId].sum;
+        return traits[traitId].sum;
     }
 
     function getTraitWeight(uint traitId) external view returns (uint[] memory) {
-        return traitWeight[traitId].weight;
+        return traits[traitId].weight;
     }
 
     function getTraitWeightMaxBonus(uint traitId) external view returns (uint[] memory) {
-        return traitWeight[traitId].weightMaxBonus;
+        return traits[traitId].weightMaxBonus;
     }
 
     function getWeightedRandomTest(uint traitType, uint randomSeed, uint bonus) external view returns (uint) {

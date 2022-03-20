@@ -12,9 +12,9 @@ contract GenesisSale is Operators {
         uint32 traitBonus; // decimals 2, 12 mean 12% bonus
     }
 
-    uint public ROACH_PRICE = 0.001 ether;
+    uint public ROACH_PRICE = 0.0001 ether;
     uint public TOTAL_TOKENS_ON_SALE = 10_000;
-    uint constant public STAGE2_LIMIT_PER_TX = 100;
+    uint constant public STAGE2_LIMIT_PER_TX = 40;
     uint public STAGE1_START;
     uint public STAGE1_DURATION;
 
@@ -167,10 +167,6 @@ contract GenesisSale is Operators {
 
     /// Admin functions
 
-    function mintOperator(address to, uint count, uint32 traitBonus) external onlyOperator {
-        _mintRaw(to, count, traitBonus);
-    }
-
     function setWhitelistAddress(address account, uint16 maxCount, uint32 traitBonus) external onlyOperator {
         whitelist[account] = Whitelist(maxCount, traitBonus);
     }
@@ -180,4 +176,9 @@ contract GenesisSale is Operators {
             whitelist[accounts[i]] = Whitelist(maxCount, traitBonus);
         }
     }
+
+    function mintOperator(address to, uint count, uint32 traitBonus) external onlyOperator {
+        _mintRaw(to, count, traitBonus);
+    }
+
 }

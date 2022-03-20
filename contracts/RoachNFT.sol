@@ -31,7 +31,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     event GenomeProviderContractChanged(IGenomeProvider genomeProviderContract);
 
     constructor(IMetadata _metadataContract)
-        ERC721('Roach Racing Club', 'ROACH')
+        ERC721('RR', 'R')
     {
         _setMetadataContract(_metadataContract);
 
@@ -123,7 +123,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         return r.genome.length > 0;
     }
 
-    function _isBirthColdownPassed(Roach storage r) internal view returns (bool) {
+    function _isBirthCooldownPassed(Roach storage r) internal view returns (bool) {
         return r.creationTime + BIRTH_COOLDOWN <= block.timestamp;
     }
 
@@ -131,7 +131,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         Roach storage r = roach[tokenId];
         return
             _isGenomeSet(r) &&
-            _isBirthColdownPassed(r);
+            _isBirthCooldownPassed(r);
     }
 
     // anyone can call
@@ -143,14 +143,16 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
 
     // Metadata
 
+
+    function setMetadataContract(IMetadata newContract) external onlyOwner {
+        _setMetadataContract(newContract);
+    }
+
     function _setMetadataContract(IMetadata newContract) internal {
         metadataContract = newContract;
         emit MetadataContractChanged(newContract);
     }
 
-    function setMetadataContract(IMetadata newContract) external onlyOwner {
-        _setMetadataContract(newContract);
-    }
 
     /**
      * @dev See {IERC721Metadata-tokenURI}.
@@ -163,14 +165,15 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
 
     // GenomeProvider
 
+    function setGenomeProviderContract(IGenomeProvider newContract) external onlyOwner {
+        _setGenomeProviderContract(newContract);
+    }
+
     function _setGenomeProviderContract(IGenomeProvider newContract) internal {
         _addOperator(address(newContract));
         genomeProviderContract = newContract;
         emit GenomeProviderContractChanged(newContract);
     }
 
-    function setGenomeProviderContract(IGenomeProvider newContract) external onlyOwner {
-        _setGenomeProviderContract(newContract);
-    }
 
 }
