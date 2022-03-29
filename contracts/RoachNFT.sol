@@ -2,13 +2,13 @@
 // Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/ERC721.sol";
+import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "./Operators.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IRoachNFT.sol";
 import "../interfaces/IGenomeProvider.sol";
 
-contract RoachNFT is ERC721, Operators, IRoachNFT {
+contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
 
     struct Roach {
         bytes genome;
@@ -26,7 +26,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     IMetadata public metadataContract;
     IGenomeProvider public genomeProviderContract;
 
-    event Birth(uint tokenId);
+    event Birth(address indexed owner, uint indexed tokenId);
     event MetadataContractChanged(IMetadata metadataContract);
     event GenomeProviderContractChanged(IGenomeProvider genomeProviderContract);
 
@@ -138,11 +138,22 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     function giveBirth(uint tokenId) external {
         require(_canBorn(tokenId), 'Still egg');
         roach[tokenId].birthTime = uint40(block.timestamp);
-        emit Birth(tokenId);
+        emit Birth(ownerOf(tokenId), tokenId);
+    }
+
+    // Enumerable
+
+    function getUsersTokens(address _owner) external view returns (uint256[] memory) {
+        uint256 n = balanceOf(_owner);
+
+        uint256[] memory result = new uint256[](n);
+        for (uint16 i = 0; i < n; i++) {
+            result[i] = tokenOfOwnerByIndex(_owner, i);
+        }
+        return result;
     }
 
     // Metadata
-
 
     function setMetadataContract(IMetadata newContract) external onlyOwner {
         _setMetadataContract(newContract);
