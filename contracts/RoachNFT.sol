@@ -176,6 +176,10 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         return metadataContract.tokenURI(tokenId);
     }
 
+    function contractURI() external view returns (string memory) {
+        return metadataContract.contractURI();
+    }
+
     // GenomeProvider
 
     function setGenomeProviderContract(IGenomeProvider newContract) external onlyOwner {

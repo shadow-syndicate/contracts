@@ -4,7 +4,9 @@ import time
 
 @pytest.fixture
 def metadata(accounts, Metadata):
-    result = accounts[0].deploy(Metadata, "https://metadev.roachracingclub.com/roach/")
+    result = accounts[0].deploy(Metadata,
+                                "https://meta.roachracingclub.com/roach/",
+                                "https://meta.roachracingclub.com/contract/")
     yield result
 
 @pytest.fixture

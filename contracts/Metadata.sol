@@ -13,9 +13,11 @@ import "../interfaces/IMetadata.sol";
 contract Metadata is IMetadata {
     using Strings for uint256;
     string public baseURI;
+    string public contractUri;
 
-    constructor(string memory _baseURI) {
+    constructor(string memory _baseURI, string memory _contractURI) {
         baseURI = _baseURI;
+        contractUri = _contractURI;
     }
 
     /**
@@ -29,8 +31,8 @@ contract Metadata is IMetadata {
         return "R";
     }
 
-//    function contractURI() public view returns (string memory) {
-//        return "https://metadata-url.com/my-metadata";
-//    }
+    function contractURI() external view returns (string memory) {
+        return contractUri;
+    }
 
 }

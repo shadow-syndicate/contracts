@@ -34,8 +34,10 @@ accounts.add(private_key)
 def main():
     print('Deployer account= {}'.format(accounts[0]))
 
-    metadata = Metadata.deploy("https://rrcdevmeta.kindex.lv/meta/roach/v7/", {'from':accounts[0]},
-        publish_source=PUBLISH_SOURCES
+    metadata = Metadata.deploy("https://rrcdevmeta.kindex.lv/meta/roach/v8/",
+                               "https://rrcdevmeta.kindex.lv/meta/contract/v8/",
+                               {'from':accounts[0]},
+                                publish_source=PUBLISH_SOURCES
     )
     roach_contract = RoachNFT.deploy(metadata, {'from':accounts[0]},
         publish_source=PUBLISH_SOURCES
