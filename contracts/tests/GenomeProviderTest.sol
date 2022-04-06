@@ -13,6 +13,14 @@ contract GenomeProviderTest is GenomeProvider {
         return traits[traitId].sum;
     }
 
+    function getTraitSetupData(uint traitId) external view returns (uint[] memory) {
+        return traits[traitId].traitData;
+    }
+
+    function getTraitSetupSlots(uint traitId) external view returns (uint[] memory) {
+        return traits[traitId].slots;
+    }
+
     function getTraitWeight(uint traitId) external view returns (uint[] memory) {
         return traits[traitId].weight;
     }

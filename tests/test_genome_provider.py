@@ -24,16 +24,18 @@ def pack_random(provider, a, add = 0):
 def test_trait_weight(accounts, roach_nft, GenomeProviderTest):
     provider = accounts[0].deploy(GenomeProviderTest, roach_nft)
     roach_nft.setGenomeProviderContract(provider)
-    provider.setTraitWeight(1, [1,3,4,1], [5,2,1,1])
-    provider.setTraitWeight(2, [1, 1], [1,1])
-    provider.setTraitWeight(3, [1, 1, 1], [2,2,2])
-    provider.setTraitWeight(4, [1], [2])
-    provider.setTraitWeight(5, [1], [2])
-    provider.setTraitWeight(6, [1], [2])
+    provider.setTraitConfig(1, [1], [0,1,2,3], [1,3,4,1], [5,2,1,1])
+    provider.setTraitConfig(2, [2], [0,1], [1, 1], [1,1])
+    provider.setTraitConfig(3, [3], [0,1,2], [1, 1, 1], [2,2,2])
+    provider.setTraitConfig(4, [4], [0], [1], [2])
+    provider.setTraitConfig(5, [5], [0], [1], [2])
+    provider.setTraitConfig(6, [6], [0], [1], [2])
 
     assert provider.getTraitWeightSum(1) == 9, "Sum"
     assert provider.getTraitWeight(1) == [1,3,4,1], "Weight"
-    assert provider.getTraitWeightMaxBonus(1) == [5,2,1,1], "Weight"
+    assert provider.getTraitWeightMaxBonus(1) == [5,2,1,1], "WeightMaxBonus"
+    assert provider.getTraitSlots(1) == [1], "Slots"
+    assert provider.getTraitData(1) == [0,1,2,3], "Slots"
 
     # no bonus
     assert provider.getWeightedRandomTest(1, 0*25, 0) == 0
