@@ -26,7 +26,11 @@ contract Metadata is IMetadata {
     }
 
     function getName(uint256 tokenId) external view returns (string memory) {
-        return "Roach";
+        return "R";
     }
+
+//    function contractURI() public view returns (string memory) {
+//        return "https://metadata-url.com/my-metadata";
+//    }
 
 }

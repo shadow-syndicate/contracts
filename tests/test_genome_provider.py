@@ -34,8 +34,8 @@ def test_trait_weight(accounts, roach_nft, GenomeProviderTest):
     assert provider.getTraitWeightSum(1) == 9, "Sum"
     assert provider.getTraitWeight(1) == [1,3,4,1], "Weight"
     assert provider.getTraitWeightMaxBonus(1) == [5,2,1,1], "WeightMaxBonus"
-    assert provider.getTraitSlots(1) == [1], "Slots"
-    assert provider.getTraitData(1) == [0,1,2,3], "Slots"
+    assert provider.getTraitSetupSlots(1) == [1], "Slots"
+    assert provider.getTraitSetupData(1) == [0,1,2,3], "Data"
 
     # no bonus
     assert provider.getWeightedRandomTest(1, 0*25, 0) == 0
@@ -84,3 +84,22 @@ def test_trait_weight(accounts, roach_nft, GenomeProviderTest):
     # random tail
     assert provider.normalizeGenome(pack_random(provider, [2, 0, 0, 0, 0, 0], 23432523532), 0) == "0x000200000000000cefaf74050000000000000000000000000000000000000000"
     assert provider.normalizeGenome(pack_random(provider, [2, 0, 0, 0, 0, 0], 23432523532), 25) == "0x000000000000000cefaf74050000000000000000000000000000000000000000"
+
+def test_multibyte_encoding(accounts, roach_nft, GenomeProviderTest):
+    provider = accounts[0].deploy(GenomeProviderTest, roach_nft)
+    roach_nft.setGenomeProviderContract(provider)
+    provider.setTraitConfig(1, [1, 2, 3], [0,9,8,  1,2,3,  2,0,0,  3,4,5], [1,3,4,1], [5,2,1,1])
+    provider.setTraitConfig(2, [4], [0,1], [1, 1], [1,1])
+    provider.setTraitConfig(3, [5], [0,1,2], [1, 1, 1], [2,2,2])
+    provider.setTraitConfig(4, [6], [0], [1], [2])
+    provider.setTraitConfig(5, [7], [0], [1], [2])
+    provider.setTraitConfig(6, [8], [0], [1], [2])
+
+    assert provider.getTraitWeightSum(1) == 9, "Sum"
+    assert provider.getTraitWeight(1) == [1,3,4,1], "Weight"
+    assert provider.getTraitWeightMaxBonus(1) == [5,2,1,1], "WeightMaxBonus"
+    assert provider.getTraitSetupSlots(1) == [1, 2, 3], "Slots"
+    assert provider.getTraitSetupData(1) == [0,9,8,  1,2,3,  2,0,0,  3,4,5], "Data"
+
+    assert provider.normalizeGenome(pack_random(provider, [0, 1, 0, 0, 0]), 0) == "0x0000090801000000000000000000000000000000000000000000000000000000"
+    assert provider.normalizeGenome(pack_random(provider, [3, 1, 2, 0, 0]), 0) == "0x0003040501020000000000000000000000000000000000000000000000000000"

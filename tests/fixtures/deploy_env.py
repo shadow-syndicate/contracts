@@ -11,12 +11,12 @@ def metadata(accounts, Metadata):
 def roach_nft(accounts, RoachNFT, GenomeProvider, metadata):
     result = accounts[0].deploy(RoachNFT, metadata)
     provider = accounts[0].deploy(GenomeProvider, result)
-    provider.setTraitWeight(1, [1,3,4,1], [5,2,1,1])
-    provider.setTraitWeight(2, [1, 1], [1,1])
-    provider.setTraitWeight(3, [2, 1, 0], [0, 1, 2])
-    provider.setTraitWeight(4, [1], [1])
-    provider.setTraitWeight(5, [1], [1])
-    provider.setTraitWeight(6, [1], [1])
+    provider.setTraitConfig(1, [1], [0,1,2,3], [1,3,4,1], [5,2,1,1])
+    provider.setTraitConfig(2, [2], [0,1], [1, 1], [1,1])
+    provider.setTraitConfig(3, [3], [0,1,2], [2, 1, 0], [0, 1, 2])
+    provider.setTraitConfig(4, [4], [0], [1], [1])
+    provider.setTraitConfig(5, [5], [0], [1], [1])
+    provider.setTraitConfig(6, [6], [0], [1], [1])
     result.setGenomeProviderContract(provider)
     yield result
 

@@ -69,7 +69,7 @@ def test_sale_stage2_happy_path(accounts, GenesisSale, weth, roach_nft):
     weth.transfer(buyer, 10e18)
 
     with reverts("ERC20: transfer amount exceeds allowance"):
-        genesis_sale.mint(100, "", {'from':buyer})
+        genesis_sale.mint(1, "", {'from':buyer})
 
     weth.approve(genesis_sale, 10e18, {'from':buyer})
 

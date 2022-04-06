@@ -14,7 +14,7 @@ contract GenesisSale is Operators {
 
     uint public ROACH_PRICE = 0.0001 ether;
     uint public TOTAL_TOKENS_ON_SALE = 10_000;
-    uint constant public STAGE2_LIMIT_PER_TX = 40;
+    uint constant public STAGE2_LIMIT_PER_TX = 30;
     uint public STAGE1_START;
     uint public STAGE1_DURATION;
 
@@ -25,7 +25,7 @@ contract GenesisSale is Operators {
     mapping(address => Whitelist) public whitelist;
     mapping(string => uint) public syndicateScore;
 
-    event Purchase(address indexed account, uint count, uint traitBonus, string indexed syndicate);
+    event Purchase(address indexed account, uint count, uint traitBonus, string syndicate);
 
     constructor(
         IERC20 _moneyToken,

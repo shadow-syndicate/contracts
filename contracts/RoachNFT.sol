@@ -21,7 +21,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
 
     Roach[] public roach;
     // uint public BIRTH_COOLDOWN = uint256(-1); // max int, will be changed to 7 week later
-    uint public BIRTH_COOLDOWN = 1; // for debug only
+    uint public BIRTH_COOLDOWN = 5 minutes; // TODO: change to 1 week
     uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
     IGenomeProvider public genomeProviderContract;
@@ -31,7 +31,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
     event GenomeProviderContractChanged(IGenomeProvider genomeProviderContract);
 
     constructor(IMetadata _metadataContract)
-        ERC721('RR', 'R')
+        ERC721('RCH', 'R')
     {
         _setMetadataContract(_metadataContract);
 
@@ -52,6 +52,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
             bytes memory genome,
             uint40[2] memory parents,
             uint40 creationTime,
+            uint40 canBirthTime,
             uint40 birthTime,
             uint40 generation,
             uint16 resistance,
@@ -62,6 +63,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         genome = r.genome;
         parents = r.parents;
         creationTime = r.creationTime;
+        canBirthTime = r.creationTime + uint40(BIRTH_COOLDOWN);
         birthTime = r.birthTime;
         generation = r.generation;
         resistance = r.resistance;

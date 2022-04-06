@@ -55,7 +55,7 @@ contract GenomeProvider is IGenomeProvider, Operators {
         require(_slots.length * _weight.length == _traitData.length, '_traitData length mismatch');
 
         uint sum = 0;
-        for (uint i = 0; i < _traitData.length; i++) {
+        for (uint i = 0; i < _weight.length; i++) {
             sum += _weight[i];
         }
         traits[traitIndex] = TraitConfig(sum, _slots, _traitData, _weight, _weightMaxBonus);
@@ -89,7 +89,7 @@ contract GenomeProvider is IGenomeProvider, Operators {
             (trait, _randomness) = getWeightedRandom(i, _randomness, _traitBonus);
             TraitConfig storage config = traits[i];
             for (uint j = 0; j < config.slots.length; j++) {
-                result[config.slots[j]] = bytes1(uint8(config.traitData[i * config.slots.length + j]));
+                result[config.slots[j]] = bytes1(uint8(config.traitData[trait * config.slots.length + j]));
             }
         }
         for (uint i = TRAIT_COUNT + 1; i < 32; i++) {

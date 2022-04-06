@@ -34,7 +34,7 @@ accounts.add(private_key)
 def main():
     print('Deployer account= {}'.format(accounts[0]))
 
-    metadata = Metadata.deploy("https://rrcdev.kindex.lv/meta/roach/v4/", {'from':accounts[0]},
+    metadata = Metadata.deploy("https://rrcdevmeta.kindex.lv/meta/roach/v7/", {'from':accounts[0]},
         publish_source=PUBLISH_SOURCES
     )
     roach_contract = RoachNFT.deploy(metadata, {'from':accounts[0]},
@@ -66,5 +66,5 @@ def main():
 
     genesis_sale.addOperator("0x549E82b2e4831E3d2bCD6dA4a6eBbBf43692D45b", {'from':accounts[0], "required_confs": 0})
 
-    genesis_sale.setWhitelistAddress("0xc5649cf31e06A9F2Ffa74E972b3acA83A561455a", 5, 15, {'from':accounts[0], "required_confs": 0})
+    genesis_sale.setWhitelistAddress("0x5c8eA699a610B09c5b6bf3dbbE1b2120F9Fd00B6", 5, 15, {'from':accounts[0], "required_confs": 0})
     genesis_sale.setWhitelistAddress("0x549E82b2e4831E3d2bCD6dA4a6eBbBf43692D45b", 5, 25, {'from':accounts[0], "required_confs": 0})
