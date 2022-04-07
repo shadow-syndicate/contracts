@@ -1,0 +1,252 @@
+[
+  {
+    "type": "Background",
+    "genes": [
+      0,
+      1,
+      2
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Background",
+    "genes": [
+      1,
+      2,
+      3
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Background",
+    "genes": [
+      2,
+      3,
+      4
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Background",
+    "genes": [
+      3,
+      4,
+      5
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Body",
+    "genes": [
+      0,
+      10,
+      10
+    ],
+    "weight": 5,
+    "weightMaxBonus": 0
+  },
+  {
+    "type": "Body",
+    "genes": [
+      1,
+      11,
+      12
+    ],
+    "weight": 0,
+    "weightMaxBonus": 5
+  },
+  {
+    "type": "Body",
+    "genes": [
+      2,
+      4,
+      0
+    ],
+    "weight": 0,
+    "weightMaxBonus": 0
+  },
+  {
+    "type": "Body",
+    "genes": [
+      3,
+      6,
+      0
+    ],
+    "weight": 0,
+    "weightMaxBonus": 0
+  },
+  {
+    "type": "Eyes",
+    "genes": [
+      0,
+      8,
+      12
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Eyes",
+    "genes": [
+      1,
+      9,
+      12
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Eyes",
+    "genes": [
+      2,
+      10,
+      12
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Eyes",
+    "genes": [
+      3,
+      11,
+      12
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Head",
+    "genes": [
+      0,
+      170,
+      1
+    ],
+    "weight": 4,
+    "weightMaxBonus": 0
+  },
+  {
+    "type": "Head",
+    "genes": [
+      1,
+      23,
+      0
+    ],
+    "weight": 3,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Head",
+    "genes": [
+      2,
+      43,
+      0
+    ],
+    "weight": 2,
+    "weightMaxBonus": 2
+  },
+  {
+    "type": "Head",
+    "genes": [
+      3,
+      45,
+      0
+    ],
+    "weight": 1,
+    "weightMaxBonus": 3
+  },
+  {
+    "type": "Head",
+    "genes": [
+      4,
+      12,
+      0
+    ],
+    "weight": 0,
+    "weightMaxBonus": 4
+  },
+  {
+    "type": "Moustache",
+    "genes": [
+      0,
+      34,
+      0
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Moustache",
+    "genes": [
+      1,
+      54,
+      0
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Moustache",
+    "genes": [
+      2,
+      76,
+      0
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Moustache",
+    "genes": [
+      3,
+      29,
+      0
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Mouth",
+    "genes": [
+      0,
+      39,
+      6
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Mouth",
+    "genes": [
+      1,
+      40,
+      7
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Mouth",
+    "genes": [
+      2,
+      55,
+      8
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  },
+  {
+    "type": "Mouth",
+    "genes": [
+      3,
+      1,
+      9
+    ],
+    "weight": 1,
+    "weightMaxBonus": 1
+  }
+]

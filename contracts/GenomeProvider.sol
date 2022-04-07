@@ -37,8 +37,9 @@ contract GenomeProvider is IGenomeProvider, Operators {
         roachContract.setGenome(_tokenId, genome);
     }
 
+    // Stub
     function _requestGenome(uint256 _tokenId, uint32 _traitBonus) internal virtual {
-        uint randomSeed = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender)));
+        uint randomSeed = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, _tokenId)));
         _onGenomeArrived(_tokenId, randomSeed, _traitBonus);
     }
 
@@ -82,6 +83,7 @@ contract GenomeProvider is IGenomeProvider, Operators {
     }
 
     function _normalizeGenome(uint256 _randomness, uint32 _traitBonus) internal view returns (bytes memory) {
+
         bytes memory result = new bytes(32);
         result[0] = 0; // version
         for (uint i = 1; i <= TRAIT_COUNT; i++) {
@@ -92,11 +94,13 @@ contract GenomeProvider is IGenomeProvider, Operators {
                 result[config.slots[j]] = bytes1(uint8(config.traitData[trait * config.slots.length + j]));
             }
         }
-        for (uint i = TRAIT_COUNT + 1; i < 32; i++) {
+
+        TraitConfig storage lastConfig = traits[TRAIT_COUNT];
+        uint maxSlot = lastConfig.slots[lastConfig.slots.length - 1];
+        for (uint i = maxSlot + 1; i < 32; i++) {
             result[i] = bytes1(uint8(_randomness & 0xFF));
             _randomness >>= 8;
         }
         return result;
     }
-
 }

@@ -1,6 +1,7 @@
 import os
 import time
 import logging
+import json
 from brownie import *
 LOGGER = logging.getLogger(__name__)
 
@@ -31,11 +32,40 @@ PUBLISH_SOURCES=True
 private_key=os.getenv('DEPLOYER_PRIVATE_KEY')
 accounts.add(private_key)
 
+def load_config():
+    slots = json.load(open('config/slots.json',))
+    trait_type = json.load(open('config/trait_type.json',))
+    traits = json.load(open('config/traits.json',))
+
+    result = {}
+    for t in traits:
+        # print(t['type'], slots[t['type']])
+        key = trait_type[t['type']]
+        if not key in result:
+            result[key] = {
+                "weight": [],
+                "weightMaxBonus": [],
+                "data": [],
+                "slots": slots[t['type']]
+            }
+        result[key]["weight"].append(t["weight"])
+        result[key]["weightMaxBonus"].append(t["weightMaxBonus"])
+        for i in range(len(slots[t['type']])):
+            result[key]["data"].append(t["genes"][i])
+
+    print(result)
+    return result
+
 def main():
+    # config = load_config()
+    # for c in config:
+    #     print(c, config[c]["slots"], config[c]["data"], config[c]["weight"], config[c]["weightMaxBonus"])
+    # return
+
     print('Deployer account= {}'.format(accounts[0]))
 
-    metadata = Metadata.deploy("https://rrcdevmeta.kindex.lv/meta/roach/v8/",
-                               "https://rrcdevmeta.kindex.lv/meta/contract/v8/",
+    metadata = Metadata.deploy("https://rrcdevmeta.kindex.lv/meta/roach/v9/",
+                               "https://rrcdevmeta.kindex.lv/meta/contract/v9/",
                                {'from':accounts[0]},
                                 publish_source=PUBLISH_SOURCES
     )
@@ -50,12 +80,14 @@ def main():
                                             {'from':accounts[0]},
             publish_source=PUBLISH_SOURCES
     )
-    genome_provider.setTraitWeight(1, [1,3,4,1], [5,2,1,1], {'from':accounts[0], "required_confs": 0})
-    genome_provider.setTraitWeight(2, [0, 1], [1, 0], {'from':accounts[0], "required_confs": 0})
-    genome_provider.setTraitWeight(3, [1, 2, 3], [3,2,1], {'from':accounts[0], "required_confs": 0})
-    genome_provider.setTraitWeight(4, [1,2,3,4,5], [1,2,3,4,5], {'from':accounts[0], "required_confs": 0})
-    genome_provider.setTraitWeight(5, [1], [1], {'from':accounts[0], "required_confs": 0})
-    genome_provider.setTraitWeight(6, [100], [100], {'from':accounts[0], "required_confs": 0})
+    config = load_config()
+    for c in config:
+        genome_provider.setTraitConfig(c,
+                                       config[c]["slots"],
+                                       config[c]["data"],
+                                       config[c]["weight"],
+                                       config[c]["weightMaxBonus"],
+                                       {'from':accounts[0], "required_confs": 0})
 
     roach_contract.setGenomeProviderContract(genome_provider, {'from':accounts[0], "required_confs": 0})
 

@@ -82,7 +82,7 @@ def test_trait_weight(accounts, roach_nft, GenomeProviderTest):
     assert provider.normalizeGenome("0x64", 25) == "0x0000000000000000000000000000000000000000000000000000000000000000"
 
     # random tail
-    assert provider.normalizeGenome(pack_random(provider, [2, 0, 0, 0, 0, 0], 23432523532), 0) == "0x000200000000000cefaf74050000000000000000000000000000000000000000"
+    assert provider.normalizeGenome(pack_random(provider, [2, 0, 0, 0, 0, 0], 23432523532), 0)  == "0x000200000000000cefaf74050000000000000000000000000000000000000000"
     assert provider.normalizeGenome(pack_random(provider, [2, 0, 0, 0, 0, 0], 23432523532), 25) == "0x000000000000000cefaf74050000000000000000000000000000000000000000"
 
 def test_multibyte_encoding(accounts, roach_nft, GenomeProviderTest):
