@@ -2,7 +2,7 @@
 // Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "OpenZeppelin/openzeppelin-contracts@4.5.0/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "./Operators.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IRoachNFT.sol";
@@ -136,7 +136,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
             _isBirthCooldownPassed(r);
     }
 
-    // anyone can call
+    // anyone can call TODO: batch, all
     function giveBirth(uint tokenId) external {
         require(_canBorn(tokenId), 'Still egg');
         roach[tokenId].birthTime = uint40(block.timestamp);
