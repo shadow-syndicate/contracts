@@ -48,8 +48,8 @@ We use [Brownie](https://eth-brownie.readthedocs.io/en/stable/install.html) fram
 
 ```bash
 pip install eth-brownie
-brownie pm install OpenZeppelin/openzeppelin-contracts@4.4.0
-brownie pm install smartcontractkit/chainlink@0.10.15
+brownie pm install OpenZeppelin/openzeppelin-contracts@4.5.0
+brownie pm install smartcontractkit/chainlink@1.2.1
 npm -g i ganache-cli
 ```
 
