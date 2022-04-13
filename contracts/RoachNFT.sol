@@ -14,18 +14,18 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         bytes genome;
         uint40[2] parents;
         uint40 creationTime;
-        uint40 birthTime;
+        uint40 revealTime;
         uint40 generation;
         uint16 resistance; // 1234 = 12.34%
     }
 
     Roach[] public roach;
-    uint public BIRTH_COOLDOWN = 5 minutes; // TODO: change to 1 week
+    uint public REVEAL_COOLDOWN = 5 minutes; // TODO: change to 1 week
     uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
     IGenomeProvider public genomeProviderContract;
 
-    event Birth(address indexed owner, uint indexed tokenId);
+    event Reveal(address indexed owner, uint indexed tokenId);
     event MetadataContractChanged(IMetadata metadataContract);
     event GenomeProviderContractChanged(IGenomeProvider genomeProviderContract);
 
@@ -39,7 +39,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
             new bytes(0)/*EMPTY_GENOME*/,
             [uint40(0), uint40(0)], // parents
             uint40(0), // creationTime
-            0, // birthTime
+            0, // revealTime
             0, // generation
             0  // resistance
         ));
@@ -51,8 +51,8 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
             bytes memory genome,
             uint40[2] memory parents,
             uint40 creationTime,
-            uint40 canBirthTime,
-            uint40 birthTime,
+            uint40 canRevealTime,
+            uint40 revealTime,
             uint40 generation,
             uint16 resistance,
             string memory name)
@@ -62,8 +62,8 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         genome = r.genome;
         parents = r.parents;
         creationTime = r.creationTime;
-        canBirthTime = r.creationTime + uint40(BIRTH_COOLDOWN);
-        birthTime = r.birthTime;
+        canRevealTime = r.creationTime + uint40(REVEAL_COOLDOWN);
+        revealTime = r.revealTime;
         generation = r.generation;
         resistance = r.resistance;
         name = metadataContract.getName(roachId);
@@ -119,8 +119,8 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         roach[tokenId].genome = genome;
     }
 
-    function setBirthCooldown(uint newCooldown) external onlyOwner {
-        BIRTH_COOLDOWN = newCooldown;
+    function setRevealCooldown(uint newCooldown) external onlyOwner {
+        REVEAL_COOLDOWN = newCooldown;
     }
 
     function canReveal(uint tokenId) external view returns (bool) {
@@ -131,12 +131,17 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         return genomeProviderContract.isReadyForReveal(tokenId);
     }
 
-    function _isBirthCooldownPassed(Roach storage r) internal view returns (bool) {
-        return r.creationTime + BIRTH_COOLDOWN <= block.timestamp;
+    function _isRevealCooldownPassed(Roach storage r) internal view returns (bool) {
+        return r.creationTime + REVEAL_COOLDOWN <= block.timestamp;
+    }
+
+    function isRevealed(uint tokenId) external view returns (bool) {
+        Roach storage r = roach[tokenId];
+        return _isRevealed(r);
     }
 
     function _isRevealed(Roach storage r) internal view returns (bool) {
-        return r.birthTime > 0;
+        return r.revealTime > 0;
     }
 
     function _canReveal(uint tokenId) internal view returns (bool) {
@@ -144,15 +149,36 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         return
             !_isRevealed(r) &&
             _isGenomeReadyForReveal(tokenId) &&
-            _isBirthCooldownPassed(r);
+            _isRevealCooldownPassed(r);
     }
 
-    // anyone can call TODO: batch, all
+    function revealBatch(uint[] calldata tokenIds) external {
+        for (uint i = 0; i < tokenIds.length; i++) {
+            _reveal(tokenIds[i]);
+        }
+    }
+
+    function revealAll() external {
+        uint256 n = balanceOf(msg.sender);
+
+        for (uint16 i = 0; i < n; i++) {
+            uint tokenId = tokenOfOwnerByIndex(msg.sender, i);
+            if (_canReveal(tokenId)) {
+                _reveal(tokenId);
+            }
+        }
+    }
+
     function reveal(uint tokenId) external {
+        _reveal(tokenId);
+    }
+
+    function _reveal(uint tokenId) internal {
+        require(ownerOf(tokenId) == msg.sender, "Wrong egg owner");
         require(_canReveal(tokenId), 'Not ready for reveal');
-        roach[tokenId].birthTime = uint40(block.timestamp);
+        roach[tokenId].revealTime = uint40(block.timestamp);
         genomeProviderContract.reveal(tokenId);
-        emit Birth(ownerOf(tokenId), tokenId);
+        emit Reveal(ownerOf(tokenId), tokenId);
     }
 
     // Enumerable

@@ -33,10 +33,29 @@ def test_reveal(accounts, chain, GenesisSale, weth, roach_nft):
     chain.mine()
 
     assert roach_nft.canReveal(1) == True, "canReveal"
+    assert roach_nft.isRevealed(1) == False
 
-    roach_nft.reveal(1, {'from':buyer})
+    tx = roach_nft.reveal(1, {'from':buyer})
+    e = tx.events[0]
+    assert e.name == 'Reveal', 'missing event Reveal'
+    assert e['tokenId'] == 1, e
 
+    assert roach_nft.isRevealed(1) == True
     roach1b = roach_nft.getRoach(1)
     assert roach1b[0] != "0x", "genome is set"
     assert roach1a[0] != roach1b[0], "genome is set"
 
+    with reverts("Wrong egg owner"):
+        roach_nft.reveal(2, {'from':accounts[2]})
+
+    assert roach_nft.isRevealed(2) == False
+    assert roach_nft.isRevealed(4) == False
+    roach_nft.revealBatch([2, 4], {'from':buyer})
+    assert roach_nft.isRevealed(2) == True
+    assert roach_nft.isRevealed(4) == True
+
+    assert roach_nft.isRevealed(3) == False
+    assert roach_nft.isRevealed(5) == False
+    roach_nft.revealAll({'from':buyer})
+    assert roach_nft.isRevealed(3) == True
+    assert roach_nft.isRevealed(5) == True
