@@ -8,6 +8,8 @@ import "../interfaces/IMetadata.sol";
 import "../interfaces/IRoachNFT.sol";
 import "../interfaces/IGenomeProvider.sol";
 
+// TODO: liquidation
+// TODO: rent, approve
 contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
 
     struct Roach {
@@ -45,6 +47,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         ));
     }
 
+    // TODO: batch
     function getRoach(uint roachId)
         external view
         returns (
@@ -69,8 +72,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         name = metadataContract.getName(roachId);
     }
 
-    function getGenome(uint roachId) external view returns (bytes memory genome)
-    {
+    function getGenome(uint roachId) external view returns (bytes memory genome) {
         require(roachId <= roach.length, "Non existing token");
         Roach storage r = roach[roachId];
         genome = r.genome;

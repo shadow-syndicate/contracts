@@ -1,5 +1,6 @@
 import logging
 import time
+from brownie import Wei, reverts
 
 LOGGER = logging.getLogger(__name__)
 
@@ -16,3 +17,9 @@ def test_nft(accounts, chain, roach_nft):
     assert r[5] == 12, 'generation'
     assert r[6] == 534, 'resistance'
     # assert r[6] == '', 'name'
+
+    g = roach_nft.getGenome(last)
+    assert g == "0x123456", 'genome'
+
+    with reverts("Non existing token"):
+        r = roach_nft.getRoach(last + 1)

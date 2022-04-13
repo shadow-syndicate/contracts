@@ -4,7 +4,7 @@ from brownie import Wei, reverts
 
 LOGGER = logging.getLogger(__name__)
 
-def test_reveal(accounts, chain, GenesisSale, weth, roach_nft):
+def test_reveal_happy_path(accounts, chain, GenesisSale, weth, roach_nft):
     buyer = accounts[1]
     stage1time = round(time.time()) - 10
     stage1duration = 5
@@ -45,14 +45,21 @@ def test_reveal(accounts, chain, GenesisSale, weth, roach_nft):
     assert roach1b[0] != "0x", "genome is set"
     assert roach1a[0] != roach1b[0], "genome is set"
 
+    with reverts("Not ready for reveal"):
+        roach_nft.reveal(1, {'from':buyer})
+
     with reverts("Wrong egg owner"):
         roach_nft.reveal(2, {'from':accounts[2]})
+
+    ############# revealBatch ###############
 
     assert roach_nft.isRevealed(2) == False
     assert roach_nft.isRevealed(4) == False
     roach_nft.revealBatch([2, 4], {'from':buyer})
     assert roach_nft.isRevealed(2) == True
     assert roach_nft.isRevealed(4) == True
+
+    ############# revealAll ###############
 
     assert roach_nft.isRevealed(3) == False
     assert roach_nft.isRevealed(5) == False
