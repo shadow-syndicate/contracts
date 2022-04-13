@@ -12,8 +12,7 @@ contract GenomeProviderChainlink is GenomeProvider, VRFConsumerBaseV2 {
     uint64 subscriptionId;
     VRFCoordinatorV2Interface coordinator;
     uint16 requestConfirmations;
-    mapping (uint256 => uint) public linkRequestId;
-    mapping (uint256 => uint32) public requestIdToTraitBonus;
+    mapping (uint256 => uint) public linkRequestIdToTokenId;
 
     // Chainlink constants: https://docs.chain.link/docs/vrf-contracts/
     constructor(
@@ -32,24 +31,20 @@ contract GenomeProviderChainlink is GenomeProvider, VRFConsumerBaseV2 {
         requestConfirmations = _requestConfirmations;
     }
 
-    function _requestGenome(uint256 _tokenId, uint32 _traitBonus) internal override {
+    function _requestRandomness(uint256 _tokenId) internal override {
         uint256 requestId = coordinator.requestRandomWords(
             chainLinkKeyHash,
             subscriptionId,
             requestConfirmations,
             500000,
             1);
-        linkRequestId[requestId] = _tokenId;
-        requestIdToTraitBonus[requestId] = _traitBonus;
+        linkRequestIdToTokenId[requestId] = _tokenId;
     }
 
     // callback function
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomness) internal override {
-        uint tokenId = linkRequestId[requestId];
-        uint32 traitBonus = requestIdToTraitBonus[requestId];
-        delete linkRequestId[requestId];
-        delete requestIdToTraitBonus[requestId];
-        // If randomness will be 0, your unlucky tree will not be alive
-        _onGenomeArrived(tokenId, randomness[0], traitBonus);
+        uint tokenId = linkRequestIdToTokenId[requestId];
+        delete linkRequestIdToTokenId[requestId];
+        _onRandomnessArrived(tokenId, randomness[0]);
     }
 }

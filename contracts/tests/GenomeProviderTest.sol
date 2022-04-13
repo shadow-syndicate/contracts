@@ -34,7 +34,7 @@ contract GenomeProviderTest is GenomeProvider {
         return choise;
     }
 
-    function normalizeGenome(uint256 _randomness, uint32 _traitBonus) external view returns (bytes memory) {
+    function normalizeGenome(uint256 _randomness, uint8 _traitBonus) external view returns (bytes memory) {
         return _normalizeGenome(_randomness, _traitBonus);
     }
 

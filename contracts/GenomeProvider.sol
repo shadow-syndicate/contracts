@@ -22,25 +22,41 @@ contract GenomeProvider is IGenomeProvider, Operators {
     }
 
     mapping(uint => TraitConfig) public traits; // slot -> array of trait weight
+    mapping (uint => uint256) public tokenIdToRandomness;
+    mapping (uint => uint8) public tokenIdToTraitBonus;
 
     constructor(IRoachNFT _roachContract) {
         roachContract = _roachContract;
     }
 
-    function requestGenome(uint tokenId, uint32 traitBonus) external {
+    function isReadyForReveal(uint tokenId) external view returns (bool) {
+        return tokenIdToRandomness[tokenId] != 0;
+    }
+
+    function requestGenome(uint tokenId, uint8 traitBonus) external {
         require(msg.sender == address(roachContract), 'Access denied');
-        _requestGenome(tokenId, traitBonus);
+        tokenIdToTraitBonus[tokenId] = traitBonus;
+        _requestRandomness(tokenId);
     }
 
-    function _onGenomeArrived(uint256 _tokenId, uint256 _randomness, uint32 _traitBonus) internal {
-        bytes memory genome = _normalizeGenome(_randomness, _traitBonus);
-        roachContract.setGenome(_tokenId, genome);
+    function _onRandomnessArrived(uint256 _tokenId, uint256 _randomness) internal {
+        tokenIdToRandomness[_tokenId] = _randomness;
     }
 
-    // Stub
-    function _requestGenome(uint256 _tokenId, uint32 _traitBonus) internal virtual {
-        uint randomSeed = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, _tokenId)));
-        _onGenomeArrived(_tokenId, randomSeed, _traitBonus);
+    function reveal(uint tokenId) external {
+        require(msg.sender == address(roachContract), 'Access denied');
+        uint256 randomness = tokenIdToRandomness[tokenId];
+        uint8 traitBonus = tokenIdToTraitBonus[tokenId];
+        delete tokenIdToRandomness[tokenId];
+        delete tokenIdToTraitBonus[tokenId];
+        bytes memory genome = _normalizeGenome(randomness, traitBonus);
+        roachContract.setGenome(tokenId, genome);
+    }
+
+    // Stub, will be overriden in Chainlink version
+    function _requestRandomness(uint256 _tokenId) internal virtual {
+        uint256 randomness = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, _tokenId)));
+        _onRandomnessArrived(_tokenId, randomness);
     }
 
     function setTraitConfig(
@@ -82,7 +98,7 @@ contract GenomeProvider is IGenomeProvider, Operators {
         }
     }
 
-    function _normalizeGenome(uint256 _randomness, uint32 _traitBonus) internal view returns (bytes memory) {
+    function _normalizeGenome(uint256 _randomness, uint8 _traitBonus) internal view returns (bytes memory) {
 
         bytes memory result = new bytes(32);
         result[0] = 0; // version

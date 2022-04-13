@@ -9,7 +9,7 @@ contract GenesisSale is Operators {
 
     struct Whitelist {
         uint16 maxCount;
-        uint32 traitBonus; // decimals 2, 12 mean 12% bonus
+        uint8 traitBonus; // decimals 2, 12 mean 12% bonus
     }
 
     uint public ROACH_PRICE = 0.0001 ether;
@@ -133,7 +133,7 @@ contract GenesisSale is Operators {
         _buy(account, count, syndicate, 0);
     }
 
-    function _buy(address account, uint count, string calldata syndicate, uint32 traitBonus) internal {
+    function _buy(address account, uint count, string calldata syndicate, uint8 traitBonus) internal {
         require(count > 0, 'Min count is 1');
         if (soldCount + count > TOTAL_TOKENS_ON_SALE) {
             count = TOTAL_TOKENS_ON_SALE - soldCount; // allow to buy left tokens
@@ -158,7 +158,7 @@ contract GenesisSale is Operators {
         _mintRaw(account, count, traitBonus);
     }
 
-    function _mintRaw(address to, uint count, uint32 traitBonus) internal {
+    function _mintRaw(address to, uint count, uint8 traitBonus) internal {
         soldCount += count;
         for (uint i = 0; i < count; i++) {
             roachContract.mintGen0(to, traitBonus);
@@ -167,17 +167,17 @@ contract GenesisSale is Operators {
 
     /// Admin functions
 
-    function setWhitelistAddress(address account, uint16 maxCount, uint32 traitBonus) external onlyOperator {
+    function setWhitelistAddress(address account, uint16 maxCount, uint8 traitBonus) external onlyOperator {
         whitelist[account] = Whitelist(maxCount, traitBonus);
     }
 
-    function setWhitelistAddressBatch(address[] calldata accounts, uint16 maxCount, uint32 traitBonus) external onlyOperator {
+    function setWhitelistAddressBatch(address[] calldata accounts, uint16 maxCount, uint8 traitBonus) external onlyOperator {
         for (uint i = 0; i < accounts.length; i++) {
             whitelist[accounts[i]] = Whitelist(maxCount, traitBonus);
         }
     }
 
-    function mintOperator(address to, uint count, uint32 traitBonus) external onlyOperator {
+    function mintOperator(address to, uint count, uint8 traitBonus) external onlyOperator {
         _mintRaw(to, count, traitBonus);
     }
 

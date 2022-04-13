@@ -20,7 +20,6 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
     }
 
     Roach[] public roach;
-    // uint public BIRTH_COOLDOWN = uint256(-1); // max int, will be changed to 7 week later
     uint public BIRTH_COOLDOWN = 5 minutes; // TODO: change to 1 week
     uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
@@ -70,6 +69,13 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         name = metadataContract.getName(roachId);
     }
 
+    function getGenome(uint roachId) external view returns (bytes memory genome)
+    {
+        require(roachId <= roach.length, "Non existing token");
+        Roach storage r = roach[roachId];
+        genome = r.genome;
+    }
+
     function lastRoachId() external view returns (uint) {
         return roach.length - 1;
     }
@@ -79,7 +85,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         uint40[2] memory parents,
         uint40 generation,
         uint16 resistance,
-        uint32 traitBonus
+        uint8 traitBonus
     ) internal {
         uint tokenId = roach.length;
         _mint(to, tokenId);
@@ -99,7 +105,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         roach.push(Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance));
     }
 
-    function mintGen0(address to, uint32 traitBonus) external onlyOperator {
+    function mintGen0(address to, uint8 traitBonus) external onlyOperator {
         _mintAndRequestGenome(
             to,
             [uint40(0), uint40(0)], // parents
@@ -117,29 +123,35 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         BIRTH_COOLDOWN = newCooldown;
     }
 
-    function canBorn(uint tokenId) external view returns (bool) {
-        return _canBorn(tokenId);
+    function canReveal(uint tokenId) external view returns (bool) {
+        return _canReveal(tokenId);
     }
 
-    function _isGenomeSet(Roach storage r) internal view returns (bool) {
-        return r.genome.length > 0;
+    function _isGenomeReadyForReveal(uint tokenId) internal view returns (bool) {
+        return genomeProviderContract.isReadyForReveal(tokenId);
     }
 
     function _isBirthCooldownPassed(Roach storage r) internal view returns (bool) {
         return r.creationTime + BIRTH_COOLDOWN <= block.timestamp;
     }
 
-    function _canBorn(uint tokenId) internal view returns (bool) {
+    function _isRevealed(Roach storage r) internal view returns (bool) {
+        return r.birthTime > 0;
+    }
+
+    function _canReveal(uint tokenId) internal view returns (bool) {
         Roach storage r = roach[tokenId];
         return
-            _isGenomeSet(r) &&
+            !_isRevealed(r) &&
+            _isGenomeReadyForReveal(tokenId) &&
             _isBirthCooldownPassed(r);
     }
 
     // anyone can call TODO: batch, all
-    function giveBirth(uint tokenId) external {
-        require(_canBorn(tokenId), 'Still egg');
+    function reveal(uint tokenId) external {
+        require(_canReveal(tokenId), 'Not ready for reveal');
         roach[tokenId].birthTime = uint40(block.timestamp);
+        genomeProviderContract.reveal(tokenId);
         emit Birth(ownerOf(tokenId), tokenId);
     }
 
@@ -191,6 +203,5 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         genomeProviderContract = newContract;
         emit GenomeProviderContractChanged(newContract);
     }
-
 
 }
