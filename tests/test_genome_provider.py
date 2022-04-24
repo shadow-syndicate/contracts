@@ -21,9 +21,10 @@ def pack_random(provider, a, add = 0):
 
     return hex(result + add * shift)
 
-def test_trait_weight(accounts, roach_nft, GenomeProviderTest):
-    provider = accounts[0].deploy(GenomeProviderTest, roach_nft)
-    roach_nft.setGenomeProviderContract(provider)
+def test_trait_weight(accounts, GenomeProviderTest):
+    secret_hash = "0x00112233445566778899"
+    provider = accounts[0].deploy(GenomeProviderTest, secret_hash)
+
     provider.setTraitConfig(1, [1], [0,1,2,3], [1,3,4,1], [5,2,1,1])
     provider.setTraitConfig(2, [2], [0,1], [1, 1], [1,1])
     provider.setTraitConfig(3, [3], [0,1,2], [1, 1, 1], [2,2,2])
@@ -85,9 +86,9 @@ def test_trait_weight(accounts, roach_nft, GenomeProviderTest):
     assert provider.normalizeGenome(pack_random(provider, [2, 0, 0, 0, 0, 0], 23432523532), 0)  == "0x000200000000000cefaf74050000000000000000000000000000000000000000"
     assert provider.normalizeGenome(pack_random(provider, [2, 0, 0, 0, 0, 0], 23432523532), 25) == "0x000000000000000cefaf74050000000000000000000000000000000000000000"
 
-def test_multibyte_encoding(accounts, roach_nft, GenomeProviderTest):
-    provider = accounts[0].deploy(GenomeProviderTest, roach_nft)
-    roach_nft.setGenomeProviderContract(provider)
+def test_multibyte_encoding(accounts, GenomeProviderTest):
+    secret_hash = "0x00112233445566778899"
+    provider = accounts[0].deploy(GenomeProviderTest, secret_hash)
     provider.setTraitConfig(1, [1, 2, 3], [0,9,8,  1,2,3,  2,0,0,  3,4,5], [1,3,4,1], [5,2,1,1])
     provider.setTraitConfig(2, [4], [0,1], [1, 1], [1,1])
     provider.setTraitConfig(3, [5], [0,1,2], [1, 1, 1], [2,2,2])

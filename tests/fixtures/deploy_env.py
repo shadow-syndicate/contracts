@@ -10,16 +10,8 @@ def metadata(accounts, Metadata):
     yield result
 
 @pytest.fixture
-def roach_nft(accounts, RoachNFT, GenomeProvider, metadata):
+def roach_nft(accounts, RoachNFT, metadata):
     result = accounts[0].deploy(RoachNFT, metadata)
-    provider = accounts[0].deploy(GenomeProvider, result)
-    provider.setTraitConfig(1, [1], [0,1,2,3], [1,3,4,1], [5,2,1,1])
-    provider.setTraitConfig(2, [2], [0,1], [1, 1], [1,1])
-    provider.setTraitConfig(3, [3], [0,1,2], [2, 1, 0], [0, 1, 2])
-    provider.setTraitConfig(4, [4], [0], [1], [1])
-    provider.setTraitConfig(5, [5], [0], [1], [1])
-    provider.setTraitConfig(6, [6], [0], [1], [1])
-    result.setGenomeProviderContract(provider)
     yield result
 
 @pytest.fixture

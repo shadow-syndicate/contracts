@@ -155,13 +155,13 @@ contract GenesisSale is Operators {
         syndicateScore[syndicate] += count;
         soldCountPerAddress[account] += count;
         emit Purchase(account, count, traitBonus, syndicate);
-        _mintRaw(account, count, traitBonus);
+        _mintRaw(account, count, traitBonus, syndicate);
     }
 
-    function _mintRaw(address to, uint count, uint8 traitBonus) internal {
+    function _mintRaw(address to, uint count, uint8 traitBonus, string calldata syndicate) internal {
         soldCount += count;
         for (uint i = 0; i < count; i++) {
-            roachContract.mintGen0(to, traitBonus);
+            roachContract.mintGen0(to, traitBonus, syndicate);
         }
     }
 
@@ -177,8 +177,8 @@ contract GenesisSale is Operators {
         }
     }
 
-    function mintOperator(address to, uint count, uint8 traitBonus) external onlyOperator {
-        _mintRaw(to, count, traitBonus);
+    function mintOperator(address to, uint count, uint8 traitBonus, string calldata syndicate) external onlyOperator {
+        _mintRaw(to, count, traitBonus, syndicate);
     }
 
 }

@@ -2,13 +2,11 @@
 // Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "../interfaces/IGenomeProvider.sol";
 import "../interfaces/IRoachNFT.sol";
 import "./Operators.sol";
 
-contract GenomeProvider is IGenomeProvider, Operators {
+contract GenomeProviderPolygon is Operators {
 
-    IRoachNFT public roachContract;
     uint constant TRAIT_COUNT = 6;
     uint constant MAX_BONUS = 25;
 
@@ -22,41 +20,38 @@ contract GenomeProvider is IGenomeProvider, Operators {
     }
 
     mapping(uint => TraitConfig) public traits; // slot -> array of trait weight
-    mapping (uint => uint256) public tokenIdToRandomness;
-    mapping (uint => uint8) public tokenIdToTraitBonus;
 
-    constructor(IRoachNFT _roachContract) {
-        roachContract = _roachContract;
+    uint256 public vrf_seed;
+    uint256 public secret_seed_hash;
+
+    constructor(uint256 _secret_seed_hash) {
+        secret_seed_hash = _secret_seed_hash;
     }
 
-    function isReadyForReveal(uint tokenId) external view returns (bool) {
-        return tokenIdToRandomness[tokenId] != 0;
+    function getTokenSeed(uint token_id, uint trait_bonus, uint secret_seed, uint mint_block_hash)
+        external view returns (uint token_seed)
+    {
+        return uint(keccak256(abi.encodePacked(token_id, trait_bonus, vrf_seed, secret_seed, mint_block_hash)));
     }
 
-    function requestGenome(uint tokenId, uint8 traitBonus) external {
-        require(msg.sender == address(roachContract), 'Access denied');
-        tokenIdToTraitBonus[tokenId] = traitBonus;
-        _requestRandomness(tokenId);
+    function calculateGenome(uint256 token_seed, uint8 trait_bonus) external view returns (bytes memory genome) {
+        genome = _normalizeGenome(token_seed, trait_bonus);
     }
 
-    function _onRandomnessArrived(uint256 _tokenId, uint256 _randomness) internal {
-        tokenIdToRandomness[_tokenId] = _randomness;
-    }
-
-    function reveal(uint tokenId) external {
-        require(msg.sender == address(roachContract), 'Access denied');
-        uint256 randomness = tokenIdToRandomness[tokenId];
-        uint8 traitBonus = tokenIdToTraitBonus[tokenId];
-        delete tokenIdToRandomness[tokenId];
-        delete tokenIdToTraitBonus[tokenId];
-        bytes memory genome = _normalizeGenome(randomness, traitBonus);
-        roachContract.setGenome(tokenId, genome);
+    function requestVrfSeed() external onlyOwner {
+        require(vrf_seed == 0, "Can't call twice");
+        _requestRandomness();
     }
 
     // Stub, will be overriden in Chainlink version
-    function _requestRandomness(uint256 _tokenId) internal virtual {
-        uint256 randomness = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, _tokenId)));
-        _onRandomnessArrived(_tokenId, randomness);
+    function _requestRandomness() internal virtual {
+        uint256 randomness = uint(keccak256(abi.encodePacked(block.timestamp)));
+        _onRandomnessArrived(randomness);
+    }
+
+    function _onRandomnessArrived(uint256 _randomness) internal {
+        require(vrf_seed == 0, "Can't call twice");
+        vrf_seed = _randomness;
     }
 
     function setTraitConfig(

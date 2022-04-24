@@ -10,6 +10,7 @@ def test_reveal_happy_path(accounts, chain, GenesisSale, weth, roach_nft):
     stage1duration = 5
     genesis_sale = accounts[0].deploy(GenesisSale, weth, roach_nft, stage1time, stage1duration, 1, 10_000)
     roach_nft.addOperator(genesis_sale)
+    roach_nft.addOperator(buyer) # for tests only
 
     assert roach_nft.balanceOf(buyer) == 0
 
@@ -24,7 +25,7 @@ def test_reveal_happy_path(accounts, chain, GenesisSale, weth, roach_nft):
     assert roach_nft.canReveal(1) == False, "canReveal is False because of cooldown"
 
     with reverts("Not ready for reveal"):
-        roach_nft.reveal(1, {'from':buyer})
+        roach_nft.revealOperator(1, "0x1234", {'from':buyer})
 
     roach1a = roach_nft.getRoach(1)
     assert roach1a[0] == "0x", "random is set"
@@ -35,7 +36,7 @@ def test_reveal_happy_path(accounts, chain, GenesisSale, weth, roach_nft):
     assert roach_nft.canReveal(1) == True, "canReveal"
     assert roach_nft.isRevealed(1) == False
 
-    tx = roach_nft.reveal(1, {'from':buyer})
+    tx = roach_nft.revealOperator(1, "0x1234", {'from':buyer})
     e = tx.events[0]
     assert e.name == 'Reveal', 'missing event Reveal'
     assert e['tokenId'] == 1, e
@@ -46,23 +47,23 @@ def test_reveal_happy_path(accounts, chain, GenesisSale, weth, roach_nft):
     assert roach1a[0] != roach1b[0], "genome is set"
 
     with reverts("Not ready for reveal"):
-        roach_nft.reveal(1, {'from':buyer})
+        roach_nft.revealOperator(1, "0x1234", {'from':buyer})
 
-    with reverts("Wrong egg owner"):
-        roach_nft.reveal(2, {'from':accounts[2]})
+    with reverts("Access denied"):
+        roach_nft.revealOperator(2, "0x1234", {'from':accounts[2]})
 
-    ############# revealBatch ###############
+    # ############# revealBatch ###############
+    #
+    # assert roach_nft.isRevealed(2) == False
+    # assert roach_nft.isRevealed(4) == False
+    # roach_nft.revealBatch([2, 4], {'from':buyer})
+    # assert roach_nft.isRevealed(2) == True
+    # assert roach_nft.isRevealed(4) == True
 
-    assert roach_nft.isRevealed(2) == False
-    assert roach_nft.isRevealed(4) == False
-    roach_nft.revealBatch([2, 4], {'from':buyer})
-    assert roach_nft.isRevealed(2) == True
-    assert roach_nft.isRevealed(4) == True
-
-    ############# revealAll ###############
-
-    assert roach_nft.isRevealed(3) == False
-    assert roach_nft.isRevealed(5) == False
-    roach_nft.revealAll({'from':buyer})
-    assert roach_nft.isRevealed(3) == True
-    assert roach_nft.isRevealed(5) == True
+    # ############# revealAll ###############
+    #
+    # assert roach_nft.isRevealed(3) == False
+    # assert roach_nft.isRevealed(5) == False
+    # roach_nft.revealAll({'from':buyer})
+    # assert roach_nft.isRevealed(3) == True
+    # assert roach_nft.isRevealed(5) == True

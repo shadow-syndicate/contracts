@@ -2,11 +2,11 @@
 // Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "../GenomeProvider.sol";
+import "../GenomeProviderPolygon.sol";
 
-contract GenomeProviderTest is GenomeProvider {
+contract GenomeProviderTest is GenomeProviderPolygon {
 
-    constructor(IRoachNFT _roachContract) GenomeProvider(_roachContract) {
+    constructor(uint256 _secret_seed_hash) GenomeProviderPolygon(_secret_seed_hash) {
     }
 
     function getTraitWeightSum(uint traitId) external view returns (uint) {

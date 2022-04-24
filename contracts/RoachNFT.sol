@@ -6,10 +6,10 @@ import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/extensi
 import "./Operators.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IRoachNFT.sol";
-import "../interfaces/IGenomeProvider.sol";
 
 // TODO: liquidation
 // TODO: rent, approve
+// TODO: bridge
 contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
 
     struct Roach {
@@ -25,11 +25,12 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
     uint public REVEAL_COOLDOWN = 5 minutes; // TODO: change to 1 week
     uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
-    IGenomeProvider public genomeProviderContract;
 
+    event Mint(address indexed account, uint tokenId, uint traitBonus, string syndicate);
     event Reveal(address indexed owner, uint indexed tokenId);
+    event GenomeChanged(uint indexed tokenId, bytes genome);
+
     event MetadataContractChanged(IMetadata metadataContract);
-    event GenomeProviderContractChanged(IGenomeProvider genomeProviderContract);
 
     constructor(IMetadata _metadataContract)
         ERC721('RCH', 'R')
@@ -82,17 +83,18 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         return roach.length - 1;
     }
 
-    function _mintAndRequestGenome(
+    function _mint(
         address to,
         uint40[2] memory parents,
         uint40 generation,
         uint16 resistance,
-        uint8 traitBonus
+        uint8 traitBonus,
+        string calldata syndicate
     ) internal {
         uint tokenId = roach.length;
         _mint(to, tokenId);
         roach.push(Roach(new bytes(0)/*EMPTY_GENOME*/, parents, uint40(block.timestamp), 0, generation, resistance));
-        genomeProviderContract.requestGenome(tokenId, traitBonus);
+        emit Mint(to, tokenId, traitBonus, syndicate);
     }
 
     function mint(
@@ -107,18 +109,24 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         roach.push(Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance));
     }
 
-    function mintGen0(address to, uint8 traitBonus) external onlyOperator {
-        _mintAndRequestGenome(
+    function mintGen0(address to, uint8 traitBonus, string calldata syndicate) external onlyOperator {
+        _mint(
             to,
             [uint40(0), uint40(0)], // parents
             0, // generation
             GEN0_RESISTANCE,
-            traitBonus);
+            traitBonus,
+            syndicate);
     }
 
     function setGenome(uint tokenId, bytes calldata genome) external onlyOperator {
+        _setGenome(tokenId, genome);
+    }
+
+    function _setGenome(uint tokenId, bytes calldata genome) internal {
         require(_exists(tokenId), "RoachNFT.setGenome: nonexistent token");
         roach[tokenId].genome = genome;
+        emit GenomeChanged(tokenId, genome);
     }
 
     function setRevealCooldown(uint newCooldown) external onlyOwner {
@@ -127,10 +135,6 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
 
     function canReveal(uint tokenId) external view returns (bool) {
         return _canReveal(tokenId);
-    }
-
-    function _isGenomeReadyForReveal(uint tokenId) internal view returns (bool) {
-        return genomeProviderContract.isReadyForReveal(tokenId);
     }
 
     function _isRevealCooldownPassed(Roach storage r) internal view returns (bool) {
@@ -150,37 +154,31 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         Roach storage r = roach[tokenId];
         return
             !_isRevealed(r) &&
-            _isGenomeReadyForReveal(tokenId) &&
             _isRevealCooldownPassed(r);
     }
 
-    function revealBatch(uint[] calldata tokenIds) external {
+    function revealBatch(uint[] calldata tokenIds, bytes[] calldata genome, uint8 v, bytes32 r, bytes32 s) external {
+        // TODO: checkSignature
         for (uint i = 0; i < tokenIds.length; i++) {
-            _reveal(tokenIds[i]);
+            _reveal(tokenIds[i], genome[i]);
         }
     }
 
-    function revealAll() external {
-        uint256 n = balanceOf(msg.sender);
-
-        for (uint16 i = 0; i < n; i++) {
-            uint tokenId = tokenOfOwnerByIndex(msg.sender, i);
-            if (_canReveal(tokenId)) {
-                _reveal(tokenId);
-            }
-        }
-    }
-
-    function reveal(uint tokenId) external {
-        _reveal(tokenId);
-    }
-
-    function _reveal(uint tokenId) internal {
+    function reveal(uint tokenId, bytes calldata genome, uint8 v, bytes32 r, bytes32 s) external {
         require(ownerOf(tokenId) == msg.sender, "Wrong egg owner");
+        // TODO: checkSignature
+        _reveal(tokenId, genome);
+    }
+
+    function revealOperator(uint tokenId, bytes calldata genome) external onlyOperator {
+        _reveal(tokenId, genome);
+    }
+
+    function _reveal(uint tokenId, bytes calldata genome) internal {
         require(_canReveal(tokenId), 'Not ready for reveal');
         roach[tokenId].revealTime = uint40(block.timestamp);
-        genomeProviderContract.reveal(tokenId);
         emit Reveal(ownerOf(tokenId), tokenId);
+        _setGenome(tokenId, genome);
     }
 
     // Enumerable
@@ -218,18 +216,6 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
 
     function contractURI() external view returns (string memory) {
         return metadataContract.contractURI();
-    }
-
-    // GenomeProvider
-
-    function setGenomeProviderContract(IGenomeProvider newContract) external onlyOwner {
-        _setGenomeProviderContract(newContract);
-    }
-
-    function _setGenomeProviderContract(IGenomeProvider newContract) internal {
-        _addOperator(address(newContract));
-        genomeProviderContract = newContract;
-        emit GenomeProviderContractChanged(newContract);
     }
 
 }
