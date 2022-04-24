@@ -62,18 +62,22 @@ brownie test
 ## Testnet deployment
 Setup environment variables:
 ```
+export DEPLOYER_PRIVATE_KEY=<deployer_account_private_key>
 export WEB3_INFURA_PROJECT_ID=<infura_project_id>
 export ETHERSCAN_TOKEN=<etherscan_api_token>
 export POLYGONSCAN_TOKEN=<polygoncan_api_token>
 ```
-For Polygon testnet (Mumbai): 
+Deploy command for Mainnet part: 
 ```
-brownie networks add Polygon mumbai host=https://polygon-mumbai.g.alchemy.com/v2/$KEY chainid=80001 explorer=https://mumbai.polygonscan.com/
-brownie run ./deploy.py --network=mumbai
+brownie run ./deploy_eth.py --network=mainnet # prod
+brownie run ./deploy_eth.py --network=rinkeby # testnet
 ```
-For Rinkeby testnet:
+Deploy command Polygon part:
 ```
-brownie run ./deploy.py --network=rinkeby
+brownie run ./deploy_polygon.py --network=polygon-main # prod
+brownie run ./deploy_polygon.py --network=polygon-test # testnet
 ```
 You need to request [testnet LINK](https://faucets.chain.link/rinkeby) to GenomeProvider contract.
 To mint tokens on GenesisSale you need to request [testnet WETH](https://faucets.chain.link/rinkeby) to your address.
+After link token is transferred to GenomeProviderChainlink contract you should call
+GenomeProviderChainlink.requestVrfSeed()
