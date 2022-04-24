@@ -42,4 +42,8 @@ contract Operators is Ownable {
         uint256 balance = _tokenContract.balanceOf(address(this));
         _tokenContract.transfer(_admin, balance);
     }
+
+    function withdrawEther() external onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
+    }
 }

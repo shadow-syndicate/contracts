@@ -7,13 +7,12 @@ import "../GenesisSale.sol";
 contract GenesisSaleDebug is GenesisSale {
 
     constructor(
-        IERC20 _moneyToken,
         IRoachNFT _roachContract,
         uint stage1startTime,
         uint stage1durationSeconds,
         uint price,
         uint totalTokensOnSale)
-        GenesisSale(_moneyToken, _roachContract, stage1startTime, stage1durationSeconds, price, totalTokensOnSale)
+        GenesisSale(_roachContract, stage1startTime, stage1durationSeconds, price, totalTokensOnSale)
     {
     }
 

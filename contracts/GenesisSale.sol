@@ -18,7 +18,6 @@ contract GenesisSale is Operators {
     uint public STAGE1_START;
     uint public STAGE1_DURATION;
 
-    IERC20 public moneyTokenContract;
     IRoachNFT public roachContract;
     uint public soldCount = 0;
     mapping(address => uint) public soldCountPerAddress;
@@ -28,14 +27,12 @@ contract GenesisSale is Operators {
     event Purchase(address indexed account, uint count, uint traitBonus, string syndicate);
 
     constructor(
-        IERC20 _moneyToken,
         IRoachNFT _roachContract,
         uint stage1startTime,
         uint stage1durationSeconds,
         uint price,
         uint totalTokensOnSale)
     {
-        moneyTokenContract = _moneyToken;
         roachContract = _roachContract;
         STAGE1_START = stage1startTime;
         STAGE1_DURATION = stage1durationSeconds;
@@ -47,7 +44,7 @@ contract GenesisSale is Operators {
     /// @dev function works on both Presale and Genesis sale stages
     /// @param count The number of roach to mint
     /// @param syndicate (Optional) Syndicate name, that player wants join to. Selected syndicate will receive a bonus.
-    function mint(uint count, string calldata syndicate) external {
+    function mint(uint count, string calldata syndicate) payable external {
         uint stage = getSaleStage();
         if (stage == 1) {
             _mintStage1(msg.sender, count, syndicate);
@@ -65,7 +62,7 @@ contract GenesisSale is Operators {
     /// @return stage One of number 0..3. 0 - presale not started. 1 - Presale. 2 - Genesis sale. 3 - sale is over.
     /// @return leftToMint Left roaches to mint
     /// @return nextStageTimestamp UTC timestamp of current stage finish and next stage start. Always 0 for for stages 2 and 3.
-    /// @return price One roach price in WETH.
+    /// @return price One roach price in ETH.
     /// @return allowedToMint For stage 1 - left roaches to mint for selected buyer address. For stage 2 - max count for one tx.
     /// @return accountBonus Selected buyer address bonus for rare trait probability
     function getSaleStatus(address account) external view returns (
@@ -139,23 +136,18 @@ contract GenesisSale is Operators {
             count = TOTAL_TOKENS_ON_SALE - soldCount; // allow to buy left tokens
         }
         uint needMoney = ROACH_PRICE * count;
-        uint balance = moneyTokenContract.balanceOf(account);
-        if (balance < needMoney) {
-            // Allow to buy less roaches when money are less than needed for requested count
-            count = balance / ROACH_PRICE;
-            needMoney = ROACH_PRICE * count;
-            require(count > 0, "Insufficient money");
-        }
-
-        moneyTokenContract.transferFrom(
-            account,
-            address(this),
-            needMoney
-        );
         syndicateScore[syndicate] += count;
         soldCountPerAddress[account] += count;
         emit Purchase(account, count, traitBonus, syndicate);
         _mintRaw(account, count, traitBonus, syndicate);
+        acceptMoney(needMoney);
+    }
+
+    function acceptMoney(uint needMoney) internal {
+        require(msg.value >= needMoney, "Insufficient money");
+        if (msg.value > needMoney) {
+            payable(msg.sender).transfer(msg.value - needMoney);
+        }
     }
 
     function _mintRaw(address to, uint count, uint8 traitBonus, string calldata syndicate) internal {

@@ -5,7 +5,6 @@ import json
 from brownie import *
 LOGGER = logging.getLogger(__name__)
 
-SALE_TOKEN="0xc778417e063141139fce010982780140aa0cd5ab" # WETH
 ROACH_PRICE=0.001e18
 PUBLISH_SOURCES=True
 
@@ -24,7 +23,7 @@ def main():
         publish_source=PUBLISH_SOURCES
     )
 
-    genesis_sale = GenesisSaleDebug.deploy(SALE_TOKEN, roach_contract, round(time.time()), 60*60*24, ROACH_PRICE, 10_000,
+    genesis_sale = GenesisSaleDebug.deploy(roach_contract, round(time.time()), 60*60*24, ROACH_PRICE, 10_000,
                                            {'from':accounts[0]},
                                             publish_source=PUBLISH_SOURCES)
     roach_contract.addOperator(genesis_sale, {'from':accounts[0], "required_confs": 0})
