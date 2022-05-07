@@ -26,6 +26,7 @@ def main():
     genesis_sale = GenesisSaleDebug.deploy(roach_contract, round(time.time()), 60*60*24, ROACH_PRICE, 10_000,
                                            {'from':accounts[0]},
                                             publish_source=PUBLISH_SOURCES)
+    print('genesis_sale = {}'.format(genesis_sale))
     roach_contract.addOperator(genesis_sale, {'from':accounts[0], "required_confs": 0})
 
     genesis_sale.addOperator("0x549E82b2e4831E3d2bCD6dA4a6eBbBf43692D45b", {'from':accounts[0], "required_confs": 0})

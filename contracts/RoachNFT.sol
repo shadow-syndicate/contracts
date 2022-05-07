@@ -25,8 +25,9 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
     uint public REVEAL_COOLDOWN = 5 minutes; // TODO: change to 1 week
     uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
+    address public signerAddress;
 
-    event Mint(address indexed account, uint tokenId, uint traitBonus, string syndicate);
+    event Mint(address indexed account, uint indexed tokenId, uint traitBonus, string syndicate);
     event Reveal(address indexed owner, uint indexed tokenId);
     event GenomeChanged(uint indexed tokenId, bytes genome);
 
@@ -36,6 +37,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         ERC721('RCH', 'R')
     {
         _setMetadataContract(_metadataContract);
+        signerAddress = msg.sender;
 
 //        _mint(address(this), 0); // Mythical base parent for all Gen0 roaches
         roach.push(Roach(
@@ -164,9 +166,39 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         }
     }
 
+    function hashArguments(uint tokenId, bytes calldata genome)
+        public pure returns (bytes32 msgHash)
+    {
+        msgHash = keccak256(abi.encode(tokenId, genome));
+    }
+
+    function getSigner(uint tokenId, bytes calldata genome,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    )
+        public pure returns (address)
+    {
+        bytes32 msgHash = hashArguments(tokenId, genome);
+        return ecrecover(msgHash, _v, _r, _s);
+    }
+
+    function isValidSignature(
+        uint tokenId, bytes calldata genome,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    )
+        public
+        view
+        returns (bool)
+    {
+        return getSigner(tokenId, genome, _v, _r, _s) == signerAddress;
+    }
+
     function reveal(uint tokenId, bytes calldata genome, uint8 v, bytes32 r, bytes32 s) external {
         require(ownerOf(tokenId) == msg.sender, "Wrong egg owner");
-        // TODO: checkSignature
+        require(isValidSignature(tokenId, genome, v, r, s), "Wrong signature");
         _reveal(tokenId, genome);
     }
 
