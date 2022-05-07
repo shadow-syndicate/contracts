@@ -65,7 +65,7 @@ contract GenesisSale is Operators {
     }
 
     function totalSupply() public view returns (uint256) {
-        return roachContract.totalSupply();
+        return roachContract.lastRoachId();
     }
 
     function isPresaleActive() public view returns (bool) {

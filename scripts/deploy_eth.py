@@ -31,5 +31,3 @@ def main():
 
     genesis_sale.addOperator("0x549E82b2e4831E3d2bCD6dA4a6eBbBf43692D45b", {'from':accounts[0], "required_confs": 0})
 
-    genesis_sale.setWhitelistAddress("0x5c8eA699a610B09c5b6bf3dbbE1b2120F9Fd00B6", 5, 25, {'from':accounts[0], "required_confs": 0})
-    genesis_sale.setWhitelistAddress("0x549E82b2e4831E3d2bCD6dA4a6eBbBf43692D45b", 5, 25, {'from':accounts[0], "required_confs": 0})

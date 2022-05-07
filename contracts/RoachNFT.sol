@@ -2,7 +2,7 @@
 // Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/ERC721.sol";
 import "./Operators.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IRoachNFT.sol";
@@ -10,7 +10,7 @@ import "../interfaces/IRoachNFT.sol";
 // TODO: liquidation
 // TODO: rent, approve
 // TODO: bridge
-contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
+contract RoachNFT is ERC721, Operators, IRoachNFT {
 
     struct Roach {
         bytes genome;
@@ -83,6 +83,10 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
     }
 
     function lastRoachId() external view returns (uint) {
+        return _lastRoachId();
+    }
+
+    function _lastRoachId() internal view returns (uint) {
         return roach.length - 1;
     }
 
@@ -214,6 +218,24 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
     }
 
     // Enumerable
+
+    function tokenOfOwnerByIndex(address _owner, uint256 _index)
+        public
+        view
+        returns (uint256 tokenId)
+    {
+        uint40 count = 0;
+        for (uint40 i = 1; i <= _lastRoachId(); ++i) {
+            if (ownerOf(i) == _owner) {
+                if (count == _index) {
+                    return i;
+                } else {
+                    count++;
+                }
+            }
+        }
+        revert();
+    }
 
     function getUsersTokens(address _owner) external view returns (uint256[] memory) {
         uint256 n = balanceOf(_owner);
