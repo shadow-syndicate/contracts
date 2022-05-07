@@ -12,8 +12,9 @@ contract GenesisSale is Operators {
     uint constant public STAGE2_LIMIT_PER_TX = 30;
     uint public STAGE1_START;
     uint public STAGE1_DURATION;
-
+    address public signerAddress;
     IRoachNFT public roachContract;
+
     mapping(address => uint) public soldCountPerAddress;
     mapping(string => uint) public syndicateScore;
 
@@ -31,6 +32,8 @@ contract GenesisSale is Operators {
         STAGE1_DURATION = stage1durationSeconds;
         ROACH_PRICE = price;
         TOTAL_TOKENS_ON_SALE = totalTokensOnSale;
+        // TODO: setSigner
+        signerAddress = msg.sender;
     }
 
     /// @notice Returns current sale status
@@ -103,8 +106,8 @@ contract GenesisSale is Operators {
     )
         external payable
     {
-        // TODO: check sig
-        _mintStage1(msg.sender, wantCount, limitForAccount, syndicate, traitBonus);
+        require(isValidSignature(msg.sender, limitForAccount, traitBonus, sigV, sigR, sigS), "Wrong signature");
+        _mintStage1(msg.sender, wantCount, limitForAccount, traitBonus, syndicate);
     }
 
     function getAllowedToBuyForAccountOnPresale(address account, uint limitForAccount) public view returns (uint) {
@@ -113,7 +116,7 @@ contract GenesisSale is Operators {
             : 0;
     }
 
-    function _mintStage1(address account, uint wantCount, uint limitForAccount, string calldata syndicate, uint8 traitBonus) internal {
+    function _mintStage1(address account, uint wantCount, uint limitForAccount, uint8 traitBonus, string calldata syndicate) internal {
         uint stage = getSaleStage();
         require(stage == 1, "Presale not active");
         uint leftToMint = getAllowedToBuyForAccountOnPresale(account, limitForAccount);
@@ -160,8 +163,36 @@ contract GenesisSale is Operators {
         }
     }
 
+    /// Signatures
+
+    function hashArguments(address account, uint limitForAccount, uint8 traitBonus)
+        public pure returns (bytes32 msgHash)
+    {
+        msgHash = keccak256(abi.encode(account, limitForAccount, traitBonus));
+    }
+
+    function getSigner(
+        address account, uint limitForAccount, uint8 traitBonus,
+        uint8 sigV, bytes32 sigR, bytes32 sigS
+    )
+    public pure returns (address)
+    {
+        bytes32 msgHash = hashArguments(account, limitForAccount, traitBonus);
+        return ecrecover(msgHash, sigV, sigR, sigS);
+    }
+
+    function isValidSignature(
+        address account, uint limitForAccount, uint8 traitBonus,
+        uint8 sigV, bytes32 sigR, bytes32 sigS
+    )
+        public
+        view
+        returns (bool)
+    {
+        return getSigner(account, limitForAccount, traitBonus, sigV, sigR, sigS) == signerAddress;
+    }
+
     /// Admin functions
-    // TODO: test with totalSupply
     function mintOperator(address to, uint count, uint8 traitBonus, string calldata syndicate) external onlyOperator {
         _mintRaw(to, count, traitBonus, syndicate);
     }

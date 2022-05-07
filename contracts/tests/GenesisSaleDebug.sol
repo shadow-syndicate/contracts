@@ -24,7 +24,7 @@ contract GenesisSaleDebug is GenesisSale {
     )
         external payable
     {
-        _mintStage1(msg.sender, wantCount, limitForAccount, syndicate, traitBonus);
+        _mintStage1(msg.sender, wantCount, limitForAccount, traitBonus, syndicate);
     }
 
     function setStage0(uint duration) external onlyOperator {

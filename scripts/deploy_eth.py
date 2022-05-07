@@ -14,8 +14,8 @@ accounts.add(private_key)
 def main():
     print('Deployer account= {}'.format(accounts[0]))
 
-    metadata = Metadata.deploy("https://rrcdevmeta.kindex.lv/meta/roach/v12/",
-                               "https://rrcdevmeta.kindex.lv/meta/contract/v12/",
+    metadata = Metadata.deploy("https://rrcdevmeta.kindex.lv/meta/roach/v13/",
+                               "https://rrcdevmeta.kindex.lv/meta/contract/v13/",
                                {'from':accounts[0]},
                                 publish_source=PUBLISH_SOURCES
     )

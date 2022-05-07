@@ -37,6 +37,7 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
         ERC721('RCH', 'R')
     {
         _setMetadataContract(_metadataContract);
+        // TODO: setSigner
         signerAddress = msg.sender;
 
 //        _mint(address(this), 0); // Mythical base parent for all Gen0 roaches
@@ -161,39 +162,38 @@ contract RoachNFT is ERC721Enumerable, Operators, IRoachNFT {
 
     function revealBatch(uint[] calldata tokenIds, bytes[] calldata genome, uint8 v, bytes32 r, bytes32 s) external {
         // TODO: checkSignature
+        require(false, "Not implemented");
         for (uint i = 0; i < tokenIds.length; i++) {
             _reveal(tokenIds[i], genome[i]);
         }
     }
 
-    function hashArguments(uint tokenId, bytes calldata genome)
+    function hashArguments(
+        uint tokenId, bytes calldata genome)
         public pure returns (bytes32 msgHash)
     {
         msgHash = keccak256(abi.encode(tokenId, genome));
     }
 
-    function getSigner(uint tokenId, bytes calldata genome,
-        uint8 _v,
-        bytes32 _r,
-        bytes32 _s
+    function getSigner(
+        uint tokenId, bytes calldata genome,
+        uint8 sigV, bytes32 sigR, bytes32 sigS
     )
         public pure returns (address)
     {
         bytes32 msgHash = hashArguments(tokenId, genome);
-        return ecrecover(msgHash, _v, _r, _s);
+        return ecrecover(msgHash, sigV, sigR, sigS);
     }
 
     function isValidSignature(
         uint tokenId, bytes calldata genome,
-        uint8 _v,
-        bytes32 _r,
-        bytes32 _s
+        uint8 sigV, bytes32 sigR, bytes32 sigS
     )
         public
         view
         returns (bool)
     {
-        return getSigner(tokenId, genome, _v, _r, _s) == signerAddress;
+        return getSigner(tokenId, genome, sigV, sigR, sigS) == signerAddress;
     }
 
     function reveal(uint tokenId, bytes calldata genome, uint8 sigV, bytes32 sigR, bytes32 sigS) external {
