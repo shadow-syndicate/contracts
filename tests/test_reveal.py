@@ -4,18 +4,18 @@ from brownie import Wei, reverts
 
 LOGGER = logging.getLogger(__name__)
 
-def test_reveal_happy_path(accounts, chain, GenesisSale, roach_nft):
+def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
     stage1time = round(time.time()) - 10
     stage1duration = 5
-    genesis_sale = accounts[0].deploy(GenesisSale, roach_nft, stage1time, stage1duration, 1, 10_000)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, stage1duration, 1, 10_000)
     roach_nft.addOperator(genesis_sale)
     roach_nft.addOperator(buyer) # for tests only
 
     assert roach_nft.balanceOf(buyer) == 0
 
     # accounts[0].transfer(buyer, "1 ether", gas_price=0)
-    genesis_sale.mint(5, "", {'from':buyer, 'amount': 5})
+    genesis_sale.mintStage2(5, "", {'from':buyer, 'amount': 5})
 
     assert roach_nft.balanceOf(buyer) == 5, "balance after mint is 5"
 

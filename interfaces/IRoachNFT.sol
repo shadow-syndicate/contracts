@@ -2,7 +2,9 @@
 // Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-interface IRoachNFT {
+import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+
+interface IRoachNFT is IERC721Enumerable {
 
     function mint(
         address to,
