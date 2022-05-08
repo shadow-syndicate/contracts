@@ -208,7 +208,8 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         return getSigner(tokenId, genome, sigV, sigR, sigS) == signerAddress;
     }
 
-    function reveal(uint tokenId, bytes calldata genome, uint8 sigV, bytes32 sigR, bytes32 sigS) external {
+    // TODO: publish token_seed
+    function reveal(uint tokenId, bytes calldata genome, uint token_seed, uint8 sigV, bytes32 sigR, bytes32 sigS) external {
         require(ownerOf(tokenId) == msg.sender, "Wrong egg owner");
         require(isValidSignature(tokenId, genome, sigV, sigR, sigS), "Wrong signature");
         _reveal(tokenId, genome);
