@@ -17,7 +17,7 @@ def test_access(accounts, GenesisSale, roach_nft):
         roach_nft.mint(accounts[0], "0x0", [0,0], 0, 0, {'from':accounts[1]})
 
     with reverts("Access denied"):
-        roach_nft.mintGen0(accounts[0], 0, "syndicate", {'from':accounts[1]})
+        roach_nft.mintGen0(accounts[0], 1, 0, "syndicate", {'from':accounts[1]})
 
     with reverts("Access denied"):
         roach_nft.setGenome(1, "0x0", {'from':accounts[1]})

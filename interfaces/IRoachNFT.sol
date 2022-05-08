@@ -11,7 +11,7 @@ interface IRoachNFT {
         uint40 generation,
         uint16 resistance) external;
 
-    function mintGen0(address to, uint8 traitBonus, string calldata syndicate) external;
+    function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external;
 
     function setGenome(uint tokenId, bytes calldata genome) external;
 

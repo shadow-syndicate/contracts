@@ -92,11 +92,11 @@ contract GenesisSale is Operators {
 
     /// @notice Takes payment and mints new roaches on Genesis Sale
     /// @dev function works on both Presale and Genesis sale stages
-    /// @param wantCount The number of roach to mint
+    /// @param desiredCount The number of roach to mint
     /// @param syndicate (Optional) Syndicate name, that player wants join to. Selected syndicate will receive a bonus.
     // decimals 2, 12 mean 12% bonus
     function mintStage1(
-        uint wantCount,
+        uint desiredCount,
         uint limitForAccount,
         uint8 traitBonus,
         string calldata syndicate,
@@ -107,7 +107,7 @@ contract GenesisSale is Operators {
         external payable
     {
         require(isValidSignature(msg.sender, limitForAccount, traitBonus, sigV, sigR, sigS), "Wrong signature");
-        _mintStage1(msg.sender, wantCount, limitForAccount, traitBonus, syndicate);
+        _mintStage1(msg.sender, desiredCount, limitForAccount, traitBonus, syndicate);
     }
 
     function getAllowedToBuyForAccountOnPresale(address account, uint limitForAccount) public view returns (uint) {
@@ -116,24 +116,24 @@ contract GenesisSale is Operators {
             : 0;
     }
 
-    function _mintStage1(address account, uint wantCount, uint limitForAccount, uint8 traitBonus, string calldata syndicate) internal {
+    function _mintStage1(address account, uint desiredCount, uint limitForAccount, uint8 traitBonus, string calldata syndicate) internal {
         uint stage = getSaleStage();
         require(stage == 1, "Presale not active");
         uint leftToMint = getAllowedToBuyForAccountOnPresale(account, limitForAccount);
-        require(wantCount <= leftToMint, 'Account limit reached');
+        require(desiredCount <= leftToMint, 'Account limit reached');
 
-        _buy(account, wantCount, syndicate, traitBonus);
+        _buy(account, desiredCount, syndicate, traitBonus);
     }
 
     /// @notice Takes payment and mints new roaches on Genesis Sale
     /// @dev function works on both Presale and Genesis sale stages
-    /// @param count The number of roach to mint
+    /// @param desiredCount The number of roach to mint
     /// @param syndicate (Optional) Syndicate name, that player wants join to. Selected syndicate will receive a bonus.
-    function mintStage2(uint count, string calldata syndicate) external payable {
+    function mintStage2(uint desiredCount, string calldata syndicate) external payable {
         uint stage = getSaleStage();
         require(stage == 2, "Public sale not active");
-        require(count <= STAGE2_LIMIT_PER_TX, 'Limit per tx');
-        _buy(msg.sender, count, syndicate, 0);
+        require(desiredCount <= STAGE2_LIMIT_PER_TX, 'Limit per tx');
+        _buy(msg.sender, desiredCount, syndicate, 0);
     }
 
     function _buy(address account, uint count, string calldata syndicate, uint8 traitBonus) internal {
@@ -158,9 +158,7 @@ contract GenesisSale is Operators {
     }
 
     function _mintRaw(address to, uint count, uint8 traitBonus, string calldata syndicate) internal {
-        for (uint i = 0; i < count; i++) {
-            roachContract.mintGen0(to, traitBonus, syndicate);
-        }
+        roachContract.mintGen0(to, count, traitBonus, syndicate);
     }
 
     /// Signatures

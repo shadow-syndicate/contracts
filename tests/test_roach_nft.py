@@ -3,6 +3,7 @@ import time
 from brownie import Wei, reverts
 
 LOGGER = logging.getLogger(__name__)
+ZERO_ADDRESS = "0x" + "0" * 40
 
 def test_nft(accounts, chain, roach_nft):
     roach_nft.mint(accounts[1], "0x123456", [1, 2], 12, 534)
@@ -21,5 +22,13 @@ def test_nft(accounts, chain, roach_nft):
     g = roach_nft.getGenome(last)
     assert g == "0x123456", 'genome'
 
-    with reverts("Non existing token"):
+    with reverts("query for nonexistent token"):
         r = roach_nft.getRoach(last + 1)
+
+    with reverts("burn caller is not owner nor approved"):
+        roach_nft.burn(last, {'from':accounts[2]})
+
+    roach_nft.burn(last, {'from':accounts[1]})
+
+    with reverts("query for nonexistent token"):
+        r = roach_nft.getRoach(last)

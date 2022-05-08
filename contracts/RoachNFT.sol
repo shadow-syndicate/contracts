@@ -64,7 +64,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
             uint16 resistance,
             string memory name)
     {
-        require(roachId < roach.length, "Non existing token");
+        require(_exists(roachId), "query for nonexistent token");
         Roach storage r = roach[roachId];
         genome = r.genome;
         parents = r.parents;
@@ -116,14 +116,22 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         roach.push(Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance));
     }
 
-    function mintGen0(address to, uint8 traitBonus, string calldata syndicate) external onlyOperator {
-        _mint(
-            to,
-            [uint40(0), uint40(0)], // parents
-            0, // generation
-            GEN0_RESISTANCE,
-            traitBonus,
-            syndicate);
+    function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external onlyOperator {
+        for (uint i = 0; i < count; i++) {
+            _mint(
+                to,
+                [uint40(0), uint40(0)], // parents
+                0, // generation
+                GEN0_RESISTANCE,
+                traitBonus,
+                syndicate);
+        }
+    }
+
+    // TODO: check if needed
+    function burn(uint tokenId) external {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "burn caller is not owner nor approved");
+        _burn(tokenId);
     }
 
     function setGenome(uint tokenId, bytes calldata genome) external onlyOperator {
