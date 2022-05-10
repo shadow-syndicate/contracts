@@ -21,10 +21,15 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
     tokens = roach_nft.getUsersTokens(buyer)
     assert tokens == [1,2,3,4,5], "getUsersTokens"
 
-    # reveal cooldown if offchain mechanic
+    r = roach_nft.getRoach(1)
 
-    roach1a = roach_nft.getRoach(1)
-    assert roach1a[0] == "0x", "random is set"
+    assert r[0] == "0x0", 'genome not set'
+    assert r[1] == [0, 0], 'parents'
+    # assert abs(r[2] - round(chain.time())) < 5, 'creationTime'
+    assert r[3] == 0, 'revealTime'
+    assert r[4] == 0, 'generation'
+    assert r[5] == 10000, 'resistance'
+
 
     chain.sleep(7*24*60*60 + 1) # wait 1 week
     chain.mine()
@@ -38,9 +43,14 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
     assert e['tokenId'] == 1, e
 
     assert roach_nft.isRevealed(1) == True
-    roach1b = roach_nft.getRoach(1)
-    assert roach1b[0] != "0x", "genome is set"
-    assert roach1a[0] != roach1b[0], "genome is set"
+
+    r2 = roach_nft.getRoach(1)
+    assert r2[0] == "0x1234", 'genome is set'
+    assert r2[1] == [0, 0], 'parents'
+    assert r[2] == r2[2], 'creationTime'
+    assert abs(r2[3] - round(chain.time())) < 5, 'revealTime'
+    assert r2[4] == 0, 'generation'
+    assert r2[5] == 10000, 'resistance'
 
     with reverts("Access denied"):
         roach_nft.revealOperator(2, "0x1234", {'from':accounts[2]})
@@ -53,10 +63,3 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
     # assert roach_nft.isRevealed(2) == True
     # assert roach_nft.isRevealed(4) == True
 
-    # ############# revealAll ###############
-    #
-    # assert roach_nft.isRevealed(3) == False
-    # assert roach_nft.isRevealed(5) == False
-    # roach_nft.revealAll({'from':buyer})
-    # assert roach_nft.isRevealed(3) == True
-    # assert roach_nft.isRevealed(5) == True

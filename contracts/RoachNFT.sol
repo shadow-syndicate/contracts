@@ -21,10 +21,11 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         uint16 resistance; // 1234 = 12.34%
     }
 
-    Roach[] public roach;
+    mapping(uint => Roach) public roach;
     uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
     address public signerAddress;
+    uint lastTokenId = 0;
 
     event Mint(address indexed account, uint indexed tokenId, uint traitBonus, string syndicate);
     event Reveal(address indexed owner, uint indexed tokenId);
@@ -38,16 +39,6 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         _setMetadataContract(_metadataContract);
         // TODO: setSigner
         signerAddress = msg.sender;
-
-//        _mint(address(this), 0); // Mythical base parent for all Gen0 roaches
-        roach.push(Roach(
-            new bytes(0)/*EMPTY_GENOME*/,
-            [uint40(0), uint40(0)], // parents
-            uint40(0), // creationTime
-            0, // revealTime
-            0, // generation
-            0  // resistance
-        ));
     }
 
     // TODO: batch
@@ -69,12 +60,12 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         creationTime = r.creationTime;
         revealTime = r.revealTime;
         generation = r.generation;
-        resistance = r.resistance;
+        resistance = r.generation == 0 ? GEN0_RESISTANCE : r.resistance;
         name = metadataContract.getName(roachId);
     }
 
     function getGenome(uint roachId) external view returns (bytes memory genome) {
-        require(roachId <= roach.length, "Non existing token");
+        require(_exists(roachId), "query for nonexistent token");
         Roach storage r = roach[roachId];
         genome = r.genome;
     }
@@ -84,23 +75,10 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     }
 
     function _lastRoachId() internal view returns (uint) {
-        return roach.length - 1;
+        return lastTokenId;
     }
 
-    function _mint(
-        address to,
-        uint40[2] memory parents,
-        uint40 generation,
-        uint16 resistance,
-        uint8 traitBonus,
-        string calldata syndicate
-    ) internal {
-        uint tokenId = roach.length;
-        _mint(to, tokenId);
-        roach.push(Roach(new bytes(0)/*EMPTY_GENOME*/, parents, uint40(block.timestamp), 0, generation, resistance));
-        emit Mint(to, tokenId, traitBonus, syndicate);
-    }
-
+    // for gen1 and offsprings
     function mint(
         address to,
         bytes calldata genome,
@@ -108,24 +86,26 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         uint40 generation,
         uint16 resistance
     ) external onlyOperator {
-        uint tokenId = roach.length;
-        _mint(to, tokenId);
-        roach.push(Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance));
+        lastTokenId++;
+        _mint(to, lastTokenId);
+        roach[lastTokenId] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance);
     }
 
     function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external onlyOperator {
         for (uint i = 0; i < count; i++) {
-            _mint(
-                to,
-                [uint40(0), uint40(0)], // parents
-                0, // generation
-                GEN0_RESISTANCE,
-                traitBonus,
-                syndicate);
+            lastTokenId++;
+            _mint(to, lastTokenId);
+//            roach[lastTokenId] = Roach(
+//                new bytes(0)/*EMPTY_GENOME*/,
+//                parents,
+//                uint40(block.timestamp),
+//                0,
+//                generation,
+//                resistance);
+            emit Mint(to, lastTokenId, traitBonus, syndicate);
         }
     }
 
-    // TODO: check if needed
     function burn(uint tokenId) external {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "burn caller is not owner nor approved");
         _burn(tokenId);
@@ -210,6 +190,10 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     function _reveal(uint tokenId, bytes calldata genome) internal {
         require(_canReveal(tokenId), 'Not ready for reveal');
         roach[tokenId].revealTime = uint40(block.timestamp);
+        if (roach[tokenId].generation == 0 && roach[tokenId].resistance == 0) {
+            // fill resistance because roach[tokenId] is empty
+            roach[tokenId].resistance = GEN0_RESISTANCE;
+        }
         emit Reveal(ownerOf(tokenId), tokenId);
         _setGenome(tokenId, genome);
     }
