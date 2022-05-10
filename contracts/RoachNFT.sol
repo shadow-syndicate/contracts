@@ -22,7 +22,6 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     }
 
     Roach[] public roach;
-    uint public REVEAL_COOLDOWN = 5 minutes; // TODO: change to 1 week
     uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
     address public signerAddress;
@@ -58,7 +57,6 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
             bytes memory genome,
             uint40[2] memory parents,
             uint40 creationTime,
-            uint40 canRevealTime,
             uint40 revealTime,
             uint40 generation,
             uint16 resistance,
@@ -69,7 +67,6 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         genome = r.genome;
         parents = r.parents;
         creationTime = r.creationTime;
-        canRevealTime = r.creationTime + uint40(REVEAL_COOLDOWN);
         revealTime = r.revealTime;
         generation = r.generation;
         resistance = r.resistance;
@@ -144,16 +141,8 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         emit GenomeChanged(tokenId, genome);
     }
 
-    function setRevealCooldown(uint newCooldown) external onlyOwner {
-        REVEAL_COOLDOWN = newCooldown;
-    }
-
     function canReveal(uint tokenId) external view returns (bool) {
         return _canReveal(tokenId);
-    }
-
-    function _isRevealCooldownPassed(Roach storage r) internal view returns (bool) {
-        return r.creationTime + REVEAL_COOLDOWN <= block.timestamp;
     }
 
     function isRevealed(uint tokenId) external view returns (bool) {
@@ -168,8 +157,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     function _canReveal(uint tokenId) internal view returns (bool) {
         Roach storage r = roach[tokenId];
         return
-            !_isRevealed(r) &&
-            _isRevealCooldownPassed(r);
+            !_isRevealed(r);
     }
 
     function revealBatch(uint[] calldata tokenIds, bytes[] calldata genome, uint8 v, bytes32 r, bytes32 s) external {

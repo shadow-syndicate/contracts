@@ -23,9 +23,6 @@ def test_access(accounts, GenesisSale, roach_nft):
         roach_nft.setGenome(1, "0x0", {'from':accounts[1]})
 
     with reverts("Ownable: caller is not the owner"):
-        roach_nft.setRevealCooldown(1, {'from':accounts[1]})
-
-    with reverts("Ownable: caller is not the owner"):
         roach_nft.setMetadataContract(roach_nft, {'from':accounts[1]})
 
     with reverts("Access denied"):

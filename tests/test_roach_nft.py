@@ -13,11 +13,9 @@ def test_nft(accounts, chain, roach_nft):
     assert r[0] == "0x123456", 'genome'
     assert r[1] == [1, 2], 'parents'
     assert abs(r[2] - round(chain.time())) < 5, 'creationTime'
-    assert abs(r[3] - round(chain.time())) < 305, 'canRevealTime'
-    assert r[4] == 0, 'revealTime'
-    assert r[5] == 12, 'generation'
-    assert r[6] == 534, 'resistance'
-    # assert r[6] == '', 'name'
+    assert r[3] == 0, 'revealTime'
+    assert r[4] == 12, 'generation'
+    assert r[5] == 534, 'resistance'
 
     g = roach_nft.getGenome(last)
     assert g == "0x123456", 'genome'

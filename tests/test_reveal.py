@@ -14,7 +14,6 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
 
     assert roach_nft.balanceOf(buyer) == 0
 
-    # accounts[0].transfer(buyer, "1 ether", gas_price=0)
     genesis_sale.mintStage2(5, "", {'from':buyer, 'amount': 5})
 
     assert roach_nft.balanceOf(buyer) == 5, "balance after mint is 5"
@@ -22,10 +21,7 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
     tokens = roach_nft.getUsersTokens(buyer)
     assert tokens == [1,2,3,4,5], "getUsersTokens"
 
-    assert roach_nft.canReveal(1) == False, "canReveal is False because of cooldown"
-
-    with reverts("Not ready for reveal"):
-        roach_nft.revealOperator(1, "0x1234", {'from':buyer})
+    # reveal cooldown if offchain mechanic
 
     roach1a = roach_nft.getRoach(1)
     assert roach1a[0] == "0x", "random is set"
@@ -45,9 +41,6 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
     roach1b = roach_nft.getRoach(1)
     assert roach1b[0] != "0x", "genome is set"
     assert roach1a[0] != roach1b[0], "genome is set"
-
-    with reverts("Not ready for reveal"):
-        roach_nft.revealOperator(1, "0x1234", {'from':buyer})
 
     with reverts("Access denied"):
         roach_nft.revealOperator(2, "0x1234", {'from':accounts[2]})
