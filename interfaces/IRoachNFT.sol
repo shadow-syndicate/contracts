@@ -17,4 +17,5 @@ interface IRoachNFT {
 
     function lastRoachId() external view returns (uint);
 
+    function getNumberMinted(address account) external view returns (uint64);
 }

@@ -2,7 +2,7 @@
 // Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/ERC721.sol";
+import "./ERC721A/ERC721A.sol";
 import "./Operators.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IRoachNFT.sol";
@@ -10,7 +10,7 @@ import "../interfaces/IRoachNFT.sol";
 // TODO: liquidation
 // TODO: rent, approve
 // TODO: bridge
-contract RoachNFT is ERC721, Operators, IRoachNFT {
+contract RoachNFT is ERC721A, Operators, IRoachNFT {
 
     struct Roach {
         bytes genome;
@@ -25,7 +25,6 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
     address public signerAddress;
-    uint lastTokenId = 0;
 
     event Mint(address indexed account, uint indexed tokenId, uint traitBonus, string syndicate);
     event Reveal(address indexed owner, uint indexed tokenId);
@@ -34,11 +33,16 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     event MetadataContractChanged(IMetadata metadataContract);
 
     constructor(IMetadata _metadataContract)
-        ERC721('RCH', 'R')
+        ERC721A('RCH', 'R')
     {
         _setMetadataContract(_metadataContract);
         // TODO: setSigner
         signerAddress = msg.sender;
+    }
+
+    // genesis collection id 1..10k
+    function _startTokenId() internal view override returns (uint256) {
+        return 1;
     }
 
     // TODO: batch
@@ -75,7 +79,7 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
     }
 
     function _lastRoachId() internal view returns (uint) {
-        return lastTokenId;
+        return _currentIndex - 1;
     }
 
     // for gen1 and offsprings
@@ -86,29 +90,21 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         uint40 generation,
         uint16 resistance
     ) external onlyOperator {
-        lastTokenId++;
-        _mint(to, lastTokenId);
-        roach[lastTokenId] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance);
+        roach[_currentIndex] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance);
+        _mint(to, 1);
     }
 
     function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external onlyOperator {
+        uint tokenId = _currentIndex + 1;
+        _mint(to, count);
         for (uint i = 0; i < count; i++) {
-            lastTokenId++;
-            _mint(to, lastTokenId);
-//            roach[lastTokenId] = Roach(
-//                new bytes(0)/*EMPTY_GENOME*/,
-//                parents,
-//                uint40(block.timestamp),
-//                0,
-//                generation,
-//                resistance);
-            emit Mint(to, lastTokenId, traitBonus, syndicate);
+            // do not save Roach struct to mapping for Gen0 because all data is default
+            emit Mint(to, tokenId + i, traitBonus, syndicate);
         }
     }
 
     function burn(uint tokenId) external {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "burn caller is not owner nor approved");
-        _burn(tokenId);
+        _burn(tokenId, true);
     }
 
     function setGenome(uint tokenId, bytes calldata genome) external onlyOperator {
@@ -239,6 +235,9 @@ contract RoachNFT is ERC721, Operators, IRoachNFT {
         emit MetadataContractChanged(newContract);
     }
 
+    function getNumberMinted(address account) external view returns (uint64) {
+        return _numberMinted(account);
+    }
 
     /**
      * @dev See {IERC721Metadata-tokenURI}.

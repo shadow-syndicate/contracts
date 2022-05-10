@@ -7,15 +7,13 @@ import "../interfaces/IRoachNFT.sol";
 
 contract GenesisSale is Operators {
 
-    uint public ROACH_PRICE = 0.0001 ether;
+    uint public ROACH_PRICE;
     uint public TOTAL_TOKENS_ON_SALE = 10_000;
-    uint constant public STAGE2_LIMIT_PER_TX = 30;
+    uint constant public STAGE2_LIMIT_PER_TX = 100;
     uint public STAGE1_START;
     uint public STAGE1_DURATION;
     address public signerAddress;
     IRoachNFT public roachContract;
-
-    mapping(address => uint) public soldCountPerAddress;
 
     event Purchase(address indexed account, uint count, uint traitBonus, string syndicate);
 
@@ -109,8 +107,9 @@ contract GenesisSale is Operators {
     }
 
     function getAllowedToBuyForAccountOnPresale(address account, uint limitForAccount) public view returns (uint) {
-        return limitForAccount > soldCountPerAddress[account]
-            ? limitForAccount - soldCountPerAddress[account]
+        uint256 numberMinted = roachContract.getNumberMinted(account);
+        return limitForAccount > numberMinted
+            ? limitForAccount - numberMinted
             : 0;
     }
 
@@ -141,7 +140,6 @@ contract GenesisSale is Operators {
             count = TOTAL_TOKENS_ON_SALE - soldCount; // allow to buy left tokens
         }
         uint needMoney = ROACH_PRICE * count;
-        soldCountPerAddress[account] += count;
         emit Purchase(account, count, traitBonus, syndicate);
         _mintRaw(account, count, traitBonus, syndicate);
         acceptMoney(needMoney);
