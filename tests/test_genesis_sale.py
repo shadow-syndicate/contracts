@@ -204,3 +204,11 @@ def test_total_supply(accounts, GenesisSaleDebug, roach_nft):
 
     status = genesis_sale.getSaleStatus(buyer, 10)
     assert status[1] == 96, "left to mint"
+
+def test_set_signer(accounts, GenesisSaleDebug, roach_nft):
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 100, 100)
+
+    assert genesis_sale.signerAddress() == accounts[0], "default signer"
+
+    genesis_sale.setSigner(accounts[2])
+    assert genesis_sale.signerAddress() == accounts[2], "new signer"

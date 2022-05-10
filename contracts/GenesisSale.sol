@@ -195,4 +195,7 @@ contract GenesisSale is Operators {
         _mintRaw(to, count, traitBonus, syndicate);
     }
 
+    function setSigner(address newSigner) external onlyOwner {
+        signerAddress = newSigner;
+    }
 }

@@ -30,3 +30,6 @@ def test_access(accounts, GenesisSale, roach_nft):
 
     with reverts("Access denied"):
         genesis_sale.mintOperator(accounts[1], 5, 25, "syndicate", {'from':accounts[1]})
+
+    with reverts("Ownable: caller is not the owner"):
+        genesis_sale.setSigner(accounts[1], {'from':accounts[1]})
