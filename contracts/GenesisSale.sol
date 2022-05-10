@@ -16,7 +16,6 @@ contract GenesisSale is Operators {
     IRoachNFT public roachContract;
 
     mapping(address => uint) public soldCountPerAddress;
-    mapping(string => uint) public syndicateScore;
 
     event Purchase(address indexed account, uint count, uint traitBonus, string syndicate);
 
@@ -32,7 +31,6 @@ contract GenesisSale is Operators {
         STAGE1_DURATION = stage1durationSeconds;
         ROACH_PRICE = price;
         TOTAL_TOKENS_ON_SALE = totalTokensOnSale;
-        // TODO: setSigner
         signerAddress = msg.sender;
     }
 
@@ -143,7 +141,6 @@ contract GenesisSale is Operators {
             count = TOTAL_TOKENS_ON_SALE - soldCount; // allow to buy left tokens
         }
         uint needMoney = ROACH_PRICE * count;
-        syndicateScore[syndicate] += count;
         soldCountPerAddress[account] += count;
         emit Purchase(account, count, traitBonus, syndicate);
         _mintRaw(account, count, traitBonus, syndicate);
