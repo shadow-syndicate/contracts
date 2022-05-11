@@ -34,16 +34,70 @@ def test_nft(accounts, chain, roach_nft):
 
 
 def test_721a(accounts, roach_nft):
-
     assert roach_nft.totalSupply() == 0, 'totalSupply'
 
     with reverts(""): # TODO: correct error message
         r = roach_nft.ownerOf(0)
 
-    roach_nft.mint(accounts[1], "0x123456", [1, 2], 12, 534)
-    roach_nft.mint(accounts[1], "0x123456", [1, 2], 12, 11)
+    roach_nft.mintGen0(accounts[1], 2, 25, "syndicate")
+
+    assert roach_nft.ownerOf(1) == accounts[1]
+    assert roach_nft.ownerOf(2) == accounts[1]
 
     assert roach_nft.totalSupply() == 2, 'totalSupply'
     roach_nft.burn(1, {'from':accounts[1]})
 
     assert roach_nft.totalSupply() == 1, 'totalSupply'
+
+    with reverts(""): # TODO: correct error message
+        r = roach_nft.ownerOf(1)
+
+    with reverts(""): # TODO: correct error message
+        r = roach_nft.ownerOf(10)
+
+    # roach_nft.mintWithId(accounts[1], 10010, "0x123456", [1, 2], 0, 0, 12, 11)
+    # assert roach_nft.totalSupply() == 2, 'totalSupply'
+    # assert roach_nft.ownerOf(10010) == accounts[1], 'ownerOf mintWithId'
+    #
+    # with reverts(""):
+    #     r = roach_nft.ownerOf(10011)
+    #
+    # # assert roach_nft.ownerOf(9) != accounts[1], 'ownerOf mintWithId-1'
+    #
+    # with reverts(""):
+    #     r = roach_nft.ownerOf(10009)
+    #
+    # with reverts(""):
+    #     r = roach_nft.ownerOf(10003)
+    #
+    # assert roach_nft.ownerOf(2) == accounts[1], 'keep owner'
+
+    # with reverts("batch region limit"):
+    #     roach_nft.mintWithId(accounts[1], 10, "0x123456", [1, 2], 0, 0, 12, 11)
+    #
+    # roach_nft.mintWithId(accounts[3], 10013, "0x123456", [1, 2], 0, 0, 12, 11)
+    # assert roach_nft.totalSupply() == 3, 'totalSupply'
+    # assert roach_nft.ownerOf(10013) == accounts[3], 'mintWithId owner'
+    # roach_nft.burn(10013, {'from':accounts[3]})
+    # assert roach_nft.totalSupply() == 2, 'totalSupply'
+    #
+    # with reverts(""):
+    #     r = roach_nft.ownerOf(10013)
+    #
+    # with reverts(""):
+    #     r = roach_nft.ownerOf(10014)
+    #
+    # with reverts(""):
+    #     r = roach_nft.ownerOf(10015)
+    #
+    # # burn second time
+    # with reverts(""):
+    #     roach_nft.burn(10013, {'from':accounts[3]})
+    #
+    # # burn unexisting token
+    # with reverts(""):
+    #     roach_nft.burn(10012, {'from':accounts[3]})
+    #
+    # # burn unexisting token
+    # with reverts(""):
+    #     roach_nft.burn(10014, {'from':accounts[3]})
