@@ -1,45 +1,70 @@
 ## Roach Racing Club Contracts
 
+```
+TODO: add game description
+```
+
 ## Contracts structure
 
 # RoachNFT
 
 Base NFT storage. Stores token ownership, genomes, parents.
-Token is created in Egg stage.
+Tokens are created in Egg stage.
 To finalize creating and give birth to Roach token you should 
-call giveBirth. There is birth cooldown period (by default 1 week).
+call reveal. There is birth cooldown period (by default 1 week).
 This contract is non-upgradable.
 
+```
+/// Setups roach genome and give birth to it
+function reveal(tokenId, genome, tokenSeed, sigV, sigR, sigS)
+```
+
+```
+/// Returns contract level metadata for roach
+function getRoach(roachId) 
+    returns (genome, parents, creationTime, revealTime, generation, resistance, memory name) 
+```
 # GensisSale
 
 Operates limited token sale. There can be only 10k Gen0 Roach tokens sold.
 
-Functions:
 ```
-function getSaleStatus(address account) external view returns (
-    uint stage,
-    uint leftToMint,
-    uint nextStageTimestamp,
-    uint price,
-    uint allowedToMintForAccount,
-    uint accountBonus)
+/// Returns current sale status:
+function getSaleStatus(address account) external view 
+    returns (stage, leftToMint, nextStageTimestamp, price, allowedToMint) 
 ```
 
 ```
-function mint(uint count, string calldata syndicate)
+/// Takes payment and mints new roaches on Presale Sale
+function mintStage1(desiredCount, limitForAccount, traitBonus, syndicate, sigV, sigR, sigS)
 ```
 
-# GenomeProvider
+```
+Takes payment and mints new roaches on Public Sale
+mintStage2(desiredCount, syndicate)
+```
+
+# GenomeProviderChainlink
 
 Generates genome for each new Roach token using ChainLink VRF.
-ChainLink generates random numbers in asynchronous mode, so genome for Roach token
-will be filled after some time when token was minted.
-You can't give birth to Roach token while genome is empty.
+
+```
+TODO: copy description from GenomeProviderPolygon
+```
+```
+/// Calculates genome for each roach using tokenSeed as seed
+function calculateGenome(tokenSeed, traitBonus)
+```
 
 # Metadata
 
 Upgradable contract that provides Metadata for Roach tokens. 
 Full metadata will be available only after Roach is born.
+
+```
+/// Returns token metadata URI according to IERC721Metadata
+function tokenURI(tokenId)
+```
 
 ## Deployment workflow
 
@@ -55,6 +80,7 @@ npm -g i ganache-cli
 
 ### Testing
 
+All test can be launched using command
 ```
 brownie test
 ```
@@ -77,7 +103,8 @@ Deploy command Polygon part:
 brownie run ./deploy_polygon.py --network=polygon-main # prod
 brownie run ./deploy_polygon.py --network=polygon-test # testnet
 ```
-You need to request [testnet LINK](https://faucets.chain.link/rinkeby) to GenomeProvider contract.
-To mint tokens on GenesisSale you need to request [testnet WETH](https://faucets.chain.link/rinkeby) to your address.
+It is needed to request [testnet LINK](https://faucets.chain.link/rinkeby) to GenomeProviderChainlink contract.
 After link token is transferred to GenomeProviderChainlink contract you should call
-GenomeProviderChainlink.requestVrfSeed()
+```
+function requestVrfSeed()
+```

@@ -5,11 +5,10 @@ pragma solidity ^0.8.10;
 import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/utils/Strings.sol";
 import "../interfaces/IMetadata.sol";
 
-/**
- * @title ERC-721 Non-Fungible Token Standard, metadata extension
- * @dev See https://eips.ethereum.org/EIPS/eip-721
- * Can be changed in future to support new features
- */
+/// @title ERC-721 Non-Fungible Token Standard, metadata extension
+/// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
+/// @dev See https://eips.ethereum.org/EIPS/eip-721
+///      Can be changed in future to support new features
 contract Metadata is IMetadata {
     using Strings for uint256;
     string public baseURI;
@@ -20,17 +19,18 @@ contract Metadata is IMetadata {
         contractUri = _contractURI;
     }
 
-    /**
-    * @dev See {IERC721Metadata-tokenURI}.
-     */
+    /// @notice Returns token metadata URI according to IERC721Metadata
     function tokenURI(uint256 tokenId) external view returns (string memory) {
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
+    /// @notice Returns roach name by index
+    /// @dev In future realizations there will a possibility to change name
     function getName(uint256 tokenId) external view returns (string memory) {
         return "R";
     }
 
+    /// @notice Returns whole collection metadata URI
     function contractURI() external view returns (string memory) {
         return contractUri;
     }

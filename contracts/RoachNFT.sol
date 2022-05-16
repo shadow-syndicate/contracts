@@ -10,15 +10,27 @@ import "../interfaces/IRoachNFT.sol";
 // TODO: liquidation
 // TODO: rent, approve
 // TODO: bridge
+
+
+/// @title Roach Racing Club NFT registry
+/// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
+/// @dev Stores NFT ownership and metadata like genome and parents.
+///      Uses ERC-721A implementation to optimize gas consumptions during batch mints.
 contract RoachNFT is ERC721A, Operators, IRoachNFT {
 
     struct Roach {
+        // array of genes in secret format
         bytes genome;
+        // NFT id of parents
         uint40[2] parents;
+        // UNIX time when egg was minted
         uint40 creationTime;
+        // UNIX time when egg was revealed to roach
         uint40 revealTime;
+        // Gen0, Gen1, etc
         uint40 generation;
-        uint16 resistance; // 1234 = 12.34%
+        // Resistance percentage (1234 = 12.34%)
+        uint16 resistance;
     }
 
     mapping(uint => Roach) public roach;
@@ -40,12 +52,21 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         signerAddress = msg.sender;
     }
 
-    // genesis collection id 1..10k
+    /// @dev Token numeration starts from 1 (genesis collection id 1..10k)
     function _startTokenId() internal view override returns (uint256) {
         return 1;
     }
 
-    // TODO: batch
+    // TODO: batch getRoach
+
+    /// @notice Returns contract level metadata for roach
+    /// @return genome       Array of genes in secret format
+    /// @return parents      Array of 2 parent roach id
+    /// @return creationTime UNIX time when egg was minted
+    /// @return revealTime   UNIX time when egg was revealed to roach
+    /// @return generation   Gen0, Gen1, etc
+    /// @return resistance   Resistance percentage (1234 = 12.34%)
+    /// @return name         Roach name
     function getRoach(uint roachId)
         external view
         returns (
@@ -68,12 +89,13 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         name = metadataContract.getName(roachId);
     }
 
-    function getGenome(uint roachId) external view returns (bytes memory genome) {
-        require(_exists(roachId), "query for nonexistent token");
-        Roach storage r = roach[roachId];
-        genome = r.genome;
+    /// @notice Total number of minted tokens for account
+    function getNumberMinted(address account) external view returns (uint64) {
+        return _numberMinted(account);
     }
 
+    /// @notice lastRoachId doesn't equap totalSupply because some token will be burned
+    ///         in using Run if Die mechanic
     function lastRoachId() external view returns (uint) {
         return _lastRoachId();
     }
@@ -82,7 +104,9 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         return _currentIndex - 1;
     }
 
-    // for gen1 and offsprings
+    /// @notice Mints new token with autoincremented index
+    /// @dev Only for gen0 offsprings (gen1+)
+    /// @dev Can be called only by authorized operator (breding contract)
     function mint(
         address to,
         bytes calldata genome,
@@ -94,6 +118,9 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         _mint(to, 1);
     }
 
+    /// @notice Mints new token with autoincremented index and stores traitBonus/syndicate for reveal
+    /// @dev Only for gen0
+    /// @dev Can be called only by authorized operator (GenesisSale contract)
     function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external onlyOperator {
         uint tokenId = _currentIndex + 1;
         _mint(to, count);
@@ -103,8 +130,15 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         }
     }
 
+    /// @notice Owner can burn his token
     function burn(uint tokenId) external {
         _burn(tokenId, true);
+    }
+
+    /// @notice Burn token is used in Run of Die mechanic
+    /// @dev Liquidation contract will be have operator right to burn tokens
+    function burnFrom(uint tokenId) external onlyOperator {
+        _burn(tokenId, false);
     }
 
     function setGenome(uint tokenId, bytes calldata genome) external onlyOperator {
@@ -144,6 +178,7 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         }
     }
 
+    /// @notice Internal function used in signature checking
     function hashArguments(
         uint tokenId, bytes calldata genome)
         public pure returns (bytes32 msgHash)
@@ -151,6 +186,7 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         msgHash = keccak256(abi.encode(tokenId, genome));
     }
 
+    /// @notice Internal function used in signature checking
     function getSigner(
         uint tokenId, bytes calldata genome,
         uint8 sigV, bytes32 sigR, bytes32 sigS
@@ -161,6 +197,7 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         return ecrecover(msgHash, sigV, sigR, sigS);
     }
 
+    /// @notice Internal function used in signature checking
     function isValidSignature(
         uint tokenId, bytes calldata genome,
         uint8 sigV, bytes32 sigR, bytes32 sigS
@@ -172,13 +209,16 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         return getSigner(tokenId, genome, sigV, sigR, sigS) == signerAddress;
     }
 
-    // TODO: publish token_seed
-    function reveal(uint tokenId, bytes calldata genome, uint token_seed, uint8 sigV, bytes32 sigR, bytes32 sigS) external {
+    /// @notice Setups roach genome and give birth to it
+    /// @dev Checks passed genome using serve generated signature
+    function reveal(uint tokenId, bytes calldata genome, uint tokenSeed, uint8 sigV, bytes32 sigR, bytes32 sigS) external {
         require(ownerOf(tokenId) == msg.sender, "Wrong egg owner");
         require(isValidSignature(tokenId, genome, sigV, sigR, sigS), "Wrong signature");
         _reveal(tokenId, genome);
     }
 
+    /// @notice Setups roach genome and give birth to it
+    /// @dev Can be called only by authorized operator (another contract or backend)
     function revealOperator(uint tokenId, bytes calldata genome) external onlyOperator {
         _reveal(tokenId, genome);
     }
@@ -214,6 +254,7 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         revert();
     }
 
+    // TODO: optimize
     function getUsersTokens(address _owner) external view returns (uint256[] memory) {
         uint256 n = balanceOf(_owner);
 
@@ -224,8 +265,7 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         return result;
     }
 
-    // Metadata
-
+    /// @notice Sets new Metadata implementation
     function setMetadataContract(IMetadata newContract) external onlyOwner {
         _setMetadataContract(newContract);
     }
@@ -235,19 +275,14 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         emit MetadataContractChanged(newContract);
     }
 
-    function getNumberMinted(address account) external view returns (uint64) {
-        return _numberMinted(account);
-    }
-
-    /**
-     * @dev See {IERC721Metadata-tokenURI}.
-     */
+    /// @notice Returns token metadata URI according to IERC721Metadata
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
         require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
 
         return metadataContract.tokenURI(tokenId);
     }
 
+    /// @notice Returns whole collection metadata URI
     function contractURI() external view returns (string memory) {
         return metadataContract.contractURI();
     }

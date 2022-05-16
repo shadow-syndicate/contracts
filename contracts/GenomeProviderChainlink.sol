@@ -6,7 +6,9 @@ import "./GenomeProviderPolygon.sol";
 import "smartcontractkit/chainlink@1.2.1/contracts/src/v0.8/VRFConsumerBase.sol";
 import "smartcontractkit/chainlink@1.2.1/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
-
+/// @title Genome generator
+/// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
+/// @dev Production version of GenomeProvider that used real Chainlink VRF
 contract GenomeProviderChainlink is GenomeProviderPolygon, VRFConsumerBase {
     bytes32 chainLinkKeyHash;
     uint256 public chainLinkFee;
