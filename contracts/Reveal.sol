@@ -8,7 +8,7 @@ import "../interfaces/IRoachNFT.sol";
 /// @title Roach NFT genome reveal contract
 /// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
 /// @dev Reveal genome using server generated signature
-///      Genome generation is described in GenomeProvider.sol
+///      Genome generation is described in GenomeProviderPolygon.sol
 contract Reveal is Operators {
 
     address public signerAddress;

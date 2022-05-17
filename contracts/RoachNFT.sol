@@ -184,33 +184,37 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         _setGenome(tokenId, genome);
     }
 
-    // Enumerable
-
-    function tokenOfOwnerByIndex(address _owner, uint256 _index)
+    /// @dev Returns a token ID owned by `owner` at a given `index` of its token list.
+    ///      Use along with {balanceOf} to enumerate all of ``owner``'s tokens.
+    function tokenOfOwnerByIndex(address owner, uint256 index)
         public
         view
         returns (uint256 tokenId)
     {
-        uint40 count = 0;
-        for (uint40 i = 1; i <= _lastRoachId(); ++i) {
-            if (ownerOf(i) == _owner) {
-                if (count == _index) {
+        uint count = 0;
+        for (uint i = _startTokenId(); i <= _lastRoachId(); ++i) {
+            if (_exists(i) && ownerOf(i) == owner) {
+                if (count == index) {
                     return i;
                 } else {
                     count++;
                 }
             }
         }
-        revert();
+        revert("owner index out of bounds");
     }
 
-    // TODO: optimize
-    function getUsersTokens(address _owner) external view returns (uint256[] memory) {
-        uint256 n = balanceOf(_owner);
+    /// @dev Returns all tokens owned by `owner`.
+    function getUsersTokens(address owner) external view returns (uint256[] memory) {
+        uint256 n = balanceOf(owner);
 
         uint256[] memory result = new uint256[](n);
-        for (uint16 i = 0; i < n; i++) {
-            result[i] = tokenOfOwnerByIndex(_owner, i);
+        uint count = 0;
+        for (uint i = _startTokenId(); i <= _lastRoachId(); ++i) {
+            if (_exists(i) && ownerOf(i) == owner) {
+                result[count] = i;
+                count++;
+            }
         }
         return result;
     }

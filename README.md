@@ -10,20 +10,24 @@ TODO: add game description
 
 Base NFT storage. Stores token ownership, genomes, parents.
 Tokens are created in Egg stage.
-To finalize creating and give birth to Roach token you should 
-call reveal. There is birth cooldown period (by default 1 week).
 This contract is non-upgradable.
-
-```
-/// Setups roach genome and give birth to it
-function reveal(tokenId, genome, tokenSeed, sigV, sigR, sigS)
-```
 
 ```
 /// Returns contract level metadata for roach
 function getRoach(roachId) 
     returns (genome, parents, creationTime, revealTime, generation, resistance, memory name) 
 ```
+
+# Reveal
+
+To finalize creating and give birth to Roach token you should
+call reveal. There is birth cooldown period (by default 1 week).
+
+```
+/// Setups roach genome and give birth to it
+function reveal(tokenId, genome, tokenSeed, sigV, sigR, sigS)
+```
+
 # GensisSale
 
 Operates limited token sale. There can be only 10k Gen0 Roach tokens sold.

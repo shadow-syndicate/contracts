@@ -20,6 +20,9 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft, reveal)
     tokens = roach_nft.getUsersTokens(buyer)
     assert tokens == [1,2,3,4,5], "getUsersTokens"
 
+    token = roach_nft.tokenOfOwnerByIndex(buyer, 2)
+    assert token == 3, "tokenOfOwnerByIndex"
+
     r = roach_nft.getRoach(1)
 
     assert r[0] == "0x0", 'genome not set'
