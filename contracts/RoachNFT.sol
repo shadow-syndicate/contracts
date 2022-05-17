@@ -16,7 +16,7 @@ import "../interfaces/IRoachNFT.sol";
 /// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
 /// @dev Stores NFT ownership and metadata like genome and parents.
 ///      Uses ERC-721A implementation to optimize gas consumptions during batch mints.
-contract RoachNFT is ERC721A, Operators, IRoachNFT {
+contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
 
     struct Roach {
         // array of genes in secret format
@@ -36,7 +36,6 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
     mapping(uint => Roach) public roach;
     uint16 public GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
-    address public signerAddress;
 
     event Mint(address indexed account, uint indexed tokenId, uint traitBonus, string syndicate);
     event Reveal(address indexed owner, uint indexed tokenId);
@@ -48,8 +47,6 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         ERC721A('RCH', 'R')
     {
         _setMetadataContract(_metadataContract);
-        // TODO: setSigner
-        signerAddress = msg.sender;
     }
 
     /// @dev Token numeration starts from 1 (genesis collection id 1..10k)
@@ -168,53 +165,6 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         Roach storage r = roach[tokenId];
         return
             !_isRevealed(r);
-    }
-
-    function revealBatch(uint[] calldata tokenIds, bytes[] calldata genome, uint8 v, bytes32 r, bytes32 s) external {
-        // TODO: checkSignature
-        require(false, "Not implemented");
-        for (uint i = 0; i < tokenIds.length; i++) {
-            _reveal(tokenIds[i], genome[i]);
-        }
-    }
-
-    /// @notice Internal function used in signature checking
-    function hashArguments(
-        uint tokenId, bytes calldata genome)
-        public pure returns (bytes32 msgHash)
-    {
-        msgHash = keccak256(abi.encode(tokenId, genome));
-    }
-
-    /// @notice Internal function used in signature checking
-    function getSigner(
-        uint tokenId, bytes calldata genome,
-        uint8 sigV, bytes32 sigR, bytes32 sigS
-    )
-        public pure returns (address)
-    {
-        bytes32 msgHash = hashArguments(tokenId, genome);
-        return ecrecover(msgHash, sigV, sigR, sigS);
-    }
-
-    /// @notice Internal function used in signature checking
-    function isValidSignature(
-        uint tokenId, bytes calldata genome,
-        uint8 sigV, bytes32 sigR, bytes32 sigS
-    )
-        public
-        view
-        returns (bool)
-    {
-        return getSigner(tokenId, genome, sigV, sigR, sigS) == signerAddress;
-    }
-
-    /// @notice Setups roach genome and give birth to it
-    /// @dev Checks passed genome using serve generated signature
-    function reveal(uint tokenId, bytes calldata genome, uint tokenSeed, uint8 sigV, bytes32 sigR, bytes32 sigS) external {
-        require(ownerOf(tokenId) == msg.sender, "Wrong egg owner");
-        require(isValidSignature(tokenId, genome, sigV, sigR, sigS), "Wrong signature");
-        _reveal(tokenId, genome);
     }
 
     /// @notice Setups roach genome and give birth to it

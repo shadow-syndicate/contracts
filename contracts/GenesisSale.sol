@@ -203,4 +203,5 @@ contract GenesisSale is Operators {
     function setSigner(address newSigner) external onlyOwner {
         signerAddress = newSigner;
     }
+
 }

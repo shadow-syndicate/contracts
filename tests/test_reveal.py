@@ -4,13 +4,12 @@ from brownie import Wei, reverts
 
 LOGGER = logging.getLogger(__name__)
 
-def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
+def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft, reveal):
     buyer = accounts[1]
     stage1time = round(time.time()) - 10
     stage1duration = 5
     genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, stage1duration, 1, 10_000)
     roach_nft.addOperator(genesis_sale)
-    roach_nft.addOperator(buyer) # for tests only
 
     assert roach_nft.balanceOf(buyer) == 0
 
@@ -37,7 +36,7 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
     assert roach_nft.canReveal(1) == True, "canReveal"
     assert roach_nft.isRevealed(1) == False
 
-    tx = roach_nft.revealOperator(1, "0x1234", {'from':buyer})
+    tx = reveal.reveal(1, "0x1234", "0x123", 27, "0x0", "0x0", {'from':buyer})
     e = tx.events[0]
     assert e.name == 'Reveal', 'missing event Reveal'
     assert e['tokenId'] == 1, e
@@ -52,8 +51,8 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft):
     assert r2[4] == 0, 'generation'
     assert r2[5] == 10000, 'resistance'
 
-    with reverts("Access denied"):
-        roach_nft.revealOperator(2, "0x1234", {'from':accounts[2]})
+    with reverts("Wrong egg owner"):
+        reveal.reveal(2, "0x1234", "0x123", 27, "0x0", "0x0", {'from':accounts[2]})
 
     # ############# revealBatch ###############
     #
