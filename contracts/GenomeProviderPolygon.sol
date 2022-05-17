@@ -54,37 +54,37 @@ contract GenomeProviderPolygon is Operators {
         emit SecretSeed(secretSeedHash);
     }
 
-    /// @notice Function is used to check tokenSeed generation after secretSeed is published
+    /// @dev Function is used to check tokenSeed generation after secretSeed is published
     function getTokenSeed(uint tokenId, uint traitBonus, uint secretSeed, uint mintBlockHash)
         external view returns (uint token_seed)
     {
         return uint(keccak256(abi.encodePacked(tokenId, traitBonus, vrfSeed, secretSeed, mintBlockHash)));
     }
 
-    /// @notice Calculates genome for each roach using tokenSeed as seed
+    /// @dev Calculates genome for each roach using tokenSeed as seed
     function calculateGenome(uint256 tokenSeed, uint8 traitBonus) external view returns (bytes memory genome) {
         genome = _normalizeGenome(tokenSeed, traitBonus);
     }
 
-    /// @notice Called only after contract is deployed and before genomes are generated
+    /// @dev Called only after contract is deployed and before genomes are generated
     function requestVrfSeed() external onlyOwner {
         require(vrfSeed == 0, "Can't call twice");
         _requestRandomness();
     }
 
-    /// @notice Stub function for filling random, will be overriden in Chainlink version
+    /// @dev Stub function for filling random, will be overriden in Chainlink version
     function _requestRandomness() internal virtual {
         uint256 randomness = uint(keccak256(abi.encodePacked(block.timestamp)));
         _onRandomnessArrived(randomness);
     }
 
-    /// @notice Saves Chainlink VRF random value as vrfSeed
+    /// @dev Saves Chainlink VRF random value as vrfSeed
     function _onRandomnessArrived(uint256 _randomness) internal {
         require(vrfSeed == 0, "Can't call twice");
         vrfSeed = _randomness;
     }
 
-    /// @notice Setups genome configuration
+    /// @dev Setups genome configuration
     function setTraitConfig(
         uint traitIndex,
         uint[] calldata _slots,

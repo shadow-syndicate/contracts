@@ -167,7 +167,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
             !_isRevealed(r);
     }
 
-    /// @notice Setups roach genome and give birth to it
+    /// @notice Setups roach genome and give birth to it.
     /// @dev Can be called only by authorized operator (another contract or backend)
     function revealOperator(uint tokenId, bytes calldata genome) external onlyOperator {
         _reveal(tokenId, genome);

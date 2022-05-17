@@ -51,8 +51,8 @@ contract Reveal is Operators {
         return getSigner(tokenId, genome, sigV, sigR, sigS) == signerAddress;
     }
 
-    /// @notice Setups roach genome and give birth to it
-    /// @dev Checks passed genome using serve generated signature
+    /// @notice Setups roach genome and give birth to it.
+    /// @dev    Checks passed genome using generated signature by server.
     function reveal(uint tokenId, bytes calldata genome, uint tokenSeed, uint8 sigV, bytes32 sigR, bytes32 sigS) external {
         require(roachContract.ownerOf(tokenId) == msg.sender, "Wrong egg owner");
         require(isValidSignature(tokenId, genome, sigV, sigR, sigS), "Wrong signature");

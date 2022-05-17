@@ -33,7 +33,7 @@ contract GenomeProviderChainlink is GenomeProviderPolygon, VRFConsumerBase {
         bytes32 requestId = requestRandomness(chainLinkKeyHash, chainLinkFee);
     }
 
-    // callback function
+    /// @notice ChainlinkVRF callback function with supplied randomness
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
         _onRandomnessArrived(randomness);
     }
