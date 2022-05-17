@@ -57,11 +57,8 @@ def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft, reveal)
     with reverts("Wrong egg owner"):
         reveal.reveal(2, "0x1234", "0x123", 27, "0x0", "0x0", {'from':accounts[2]})
 
-    # ############# revealBatch ###############
-    #
-    # assert roach_nft.isRevealed(2) == False
-    # assert roach_nft.isRevealed(4) == False
-    # roach_nft.revealBatch([2, 4], {'from':buyer})
-    # assert roach_nft.isRevealed(2) == True
-    # assert roach_nft.isRevealed(4) == True
 
+def test_set_signer(accounts, reveal):
+    assert reveal.signerAddress() == accounts[0], "default signer"
+    reveal.setSigner(accounts[2])
+    assert reveal.signerAddress() == accounts[2], "new signer"

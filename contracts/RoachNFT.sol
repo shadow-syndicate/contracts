@@ -7,11 +7,6 @@ import "./Operators.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IRoachNFT.sol";
 
-// TODO: liquidation
-// TODO: rent, approve
-// TODO: bridge
-
-
 /// @title Roach Racing Club NFT registry
 /// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
 /// @dev Stores NFT ownership and metadata like genome and parents.

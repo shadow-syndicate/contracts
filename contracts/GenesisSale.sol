@@ -192,10 +192,11 @@ contract GenesisSale is Operators {
         return getSigner(account, limitForAccount, traitBonus, sigV, sigR, sigS) == signerAddress;
     }
 
-    // TODO: test limit
     /// @notice Mints new NFT with selected parameters
     /// @dev There is a guarantee that there will no more than 10k genesis roaches
     function mintOperator(address to, uint count, uint8 traitBonus, string calldata syndicate) external onlyOperator {
+        uint soldCount = totalMinted();
+        require(soldCount + count <= TOTAL_TOKENS_ON_SALE, "Sale is over");
         _mintRaw(to, count, traitBonus, syndicate);
     }
 

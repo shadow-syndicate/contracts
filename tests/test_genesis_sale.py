@@ -226,3 +226,20 @@ def test_set_signer(accounts, GenesisSaleDebug, roach_nft):
 
     genesis_sale.setSigner(accounts[2])
     assert genesis_sale.signerAddress() == accounts[2], "new signer"
+
+def test_minted_count_limit(accounts, GenesisSaleDebug, roach_nft):
+    buyer = accounts[1]
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 5, 100, 3)
+    roach_nft.addOperator(genesis_sale)
+    assert roach_nft.balanceOf(buyer) == 0
+
+    genesis_sale.mintStage2(1, "", {'from':buyer, 'amount': 100, 'gas_price': 0})
+
+    assert genesis_sale.totalMinted() == 1, "totalMinted"
+
+    genesis_sale.mintOperator(buyer, 2, 0, "", {'from':accounts[0]})
+    assert genesis_sale.totalMinted() == 3, "totalMinted"
+    assert roach_nft.balanceOf(buyer) == 3
+
+    with reverts("Sale is over"):
+        genesis_sale.mintOperator(buyer, 1, 0, "", {'from':accounts[0]})
