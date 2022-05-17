@@ -17,9 +17,6 @@ def test_nft(accounts, chain, roach_nft):
     assert r[4] == 12, 'generation'
     assert r[5] == 534, 'resistance'
 
-    g = roach_nft.getGenome(last)
-    assert g == "0x123456", 'genome'
-
     with reverts("query for nonexistent token"):
         r = roach_nft.getRoach(last + 1)
 

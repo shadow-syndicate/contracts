@@ -195,12 +195,12 @@ def test_total_supply(accounts, GenesisSaleDebug, roach_nft):
     genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 100, 100)
     roach_nft.addOperator(genesis_sale)
 
-    assert genesis_sale.totalSupply() == 0, "Default supply 100"
+    assert genesis_sale.totalMinted() == 0, "Default supply 100"
     genesis_sale.mintOperator(buyer, 1, 0, "")
-    assert genesis_sale.totalSupply() == 1, "Supply"
+    assert genesis_sale.totalMinted() == 1, "Supply"
 
     genesis_sale.mintStage1noSig(3, 10, 25, "", {'from':buyer, 'amount': 300})
-    assert genesis_sale.totalSupply() == 4, "Supply"
+    assert genesis_sale.totalMinted() == 4, "Supply"
 
     status = genesis_sale.getSaleStatus(buyer, 10)
     assert status[1] == 96, "left to mint"

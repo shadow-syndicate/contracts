@@ -9,7 +9,7 @@ interface IRoachNFT {
     function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external;
 
     /// @notice lastRoachId doesn't equap totalSupply because some token will be burned
-    ///         in using Run if Die mechanic
+    ///         in using Run or Die mechanic
     function lastRoachId() external view returns (uint);
 
     /// @notice Total number of minted tokens for account

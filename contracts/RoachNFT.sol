@@ -95,7 +95,7 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
     }
 
     /// @notice lastRoachId doesn't equap totalSupply because some token will be burned
-    ///         in using Run if Die mechanic
+    ///         in using Run or Die mechanic
     function lastRoachId() external view returns (uint) {
         return _lastRoachId();
     }
@@ -135,7 +135,7 @@ contract RoachNFT is ERC721A, Operators, IRoachNFT {
         _burn(tokenId, true);
     }
 
-    /// @notice Burn token is used in Run of Die mechanic
+    /// @notice Burn token is used in Run or Die mechanic
     /// @dev Liquidation contract will be have operator right to burn tokens
     function burnFrom(uint tokenId) external onlyOperator {
         _burn(tokenId, false);
