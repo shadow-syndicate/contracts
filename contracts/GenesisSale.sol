@@ -14,7 +14,6 @@ contract GenesisSale is Operators {
 
     uint public ROACH_PRICE;
     uint public TOTAL_TOKENS_ON_SALE = 10_000;
-    uint constant public STAGE2_LIMIT_PER_TX = 100;
     uint public STAGE1_START;
     uint public STAGE1_DURATION;
     address public signerAddress;
@@ -49,7 +48,7 @@ contract GenesisSale is Operators {
         int leftToMint,
         uint nextStageTimestamp,
         uint price,
-        uint allowedToMint)
+        int allowedToMint)
     {
         stage = getSaleStage();
 
@@ -60,9 +59,9 @@ contract GenesisSale is Operators {
             0;
         leftToMint = int(TOTAL_TOKENS_ON_SALE) - int(totalMinted());
         allowedToMint =
-            stage == 1 ? getAllowedToBuyForAccountOnPresale(account, limitForAccount) :
-            stage == 2 ? getAllowedToBuyOnStage2() :
-            (uint)(0);
+            stage == 1 ? (int)(getAllowedToBuyForAccountOnPresale(account, limitForAccount)) :
+            stage == 2 ? leftToMint :
+            int(0);
     }
 
     /// @notice Total number of minted tokens
@@ -87,11 +86,6 @@ contract GenesisSale is Operators {
             isSaleStage2Active() ? 2 :
             block.timestamp < STAGE1_START ? 0 :
             3;
-    }
-
-    // TODO: remove
-    function getAllowedToBuyOnStage2() public pure returns (uint) {
-        return STAGE2_LIMIT_PER_TX;
     }
 
     /// @notice Takes payment and mints new roaches on Presale Sale
@@ -140,7 +134,6 @@ contract GenesisSale is Operators {
     function mintStage2(uint desiredCount, string calldata syndicate) external payable {
         uint stage = getSaleStage();
         require(stage == 2, "Public sale not active");
-        require(desiredCount <= STAGE2_LIMIT_PER_TX, 'Limit per tx');
         _buy(msg.sender, desiredCount, syndicate, 0);
     }
 

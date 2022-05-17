@@ -80,11 +80,25 @@ def test_sale_stage2_happy_path(accounts, GenesisSaleDebug, roach_nft):
     assert status[0] == 2, "stage2 started"
     assert status[2] == 0, "stage2 no finish time"
 
-    with reverts("Limit per tx"):
-        genesis_sale.mintStage2(101, "", {'from':buyer, 'amount': 10100})
-
     with reverts("Presale not active"):
         genesis_sale.mintStage1noSig(1, 10, 10, "", {'from':buyer, 'amount': 100})
+
+def test_withdraw(accounts, GenesisSaleDebug, roach_nft):
+    buyer = accounts[1]
+    stage1start = round(time.time()) - 10
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1start, 5, 100, 10_000)
+    roach_nft.addOperator(genesis_sale)
+
+    before = buyer.balance()
+    genesis_sale.mintStage2(13, "", {'from':buyer, 'amount': 1500, 'gasPrice': 0})
+    assert roach_nft.balanceOf(buyer) == 13
+    after = buyer.balance()
+    assert after - before == -1300, "Refund 200"
+
+    before = accounts[0].balance()
+    genesis_sale.withdrawEther({'from': accounts[0], 'gasPrice': 0})
+    after = accounts[0].balance()
+    assert after - before == 1300, "Withdraw all ether"
 
 
 def test_sale_not_started(accounts, GenesisSaleDebug, roach_nft):
