@@ -49,8 +49,6 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         return 1;
     }
 
-    // TODO: batch getRoach
-
     /// @notice Returns contract level metadata for roach
     /// @return genome       Array of genes in secret format
     /// @return parents      Array of 2 parent roach id
@@ -59,16 +57,16 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     /// @return generation   Gen0, Gen1, etc
     /// @return resistance   Resistance percentage (1234 = 12.34%)
     /// @return name         Roach name
-    function getRoach(uint roachId)
-    external view
-    returns (
-        bytes memory genome,
-        uint40[2] memory parents,
-        uint40 creationTime,
-        uint40 revealTime,
-        uint40 generation,
-        uint16 resistance,
-        string memory name)
+    function getRoach(uint roachId) external view
+        returns (
+            bytes memory genome,
+            uint40[2] memory parents,
+            uint40 creationTime,
+            uint40 revealTime,
+            uint40 generation,
+            uint16 resistance,
+            string memory name,
+            address owner)
     {
         require(_exists(roachId), "query for nonexistent token");
         Roach storage r = roach[roachId];
@@ -79,6 +77,26 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         generation = r.generation;
         resistance = r.generation == 0 ? GEN0_RESISTANCE : r.resistance;
         name = metadataContract.getName(roachId);
+        owner = ownerOf(roachId);
+    }
+
+    function getRoachBatch(uint[] calldata roachIds) external view
+        returns (
+            Roach[] memory roachData,
+            string[] memory name,
+            address[] memory owner)
+    {
+        roachData = new Roach[](roachIds.length);
+        name = new string[](roachIds.length);
+        owner = new address[](roachIds.length);
+
+        for (uint i = 0; i < roachIds.length; i++) {
+            uint roachId = roachIds[i];
+            require(_exists(roachId), "query for nonexistent token");
+            roachData[i] = roach[roachId];
+            name[i] = metadataContract.getName(roachId);
+            owner[i] = ownerOf(roachId);
+        }
     }
 
     /// @notice Total number of minted tokens for account

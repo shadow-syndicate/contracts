@@ -27,7 +27,7 @@ contract Metadata is IMetadata {
     /// @notice Returns roach name by index
     /// @dev In future realizations there will a possibility to change name
     function getName(uint256 tokenId) external view returns (string memory) {
-        return "R";
+        return string(abi.encodePacked("Roach ", tokenId.toString()));
     }
 
     /// @notice Returns whole collection metadata URI

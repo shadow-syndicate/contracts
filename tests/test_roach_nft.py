@@ -67,3 +67,21 @@ def test_enum(accounts, roach_nft):
 
     token = roach_nft.tokenOfOwnerByIndex(accounts[1], 2)
     assert token == 5, "tokenOfOwnerByIndex"
+
+def test_metadata(accounts, roach_nft):
+    roach_nft.mintGen0(accounts[1], 1, 25, "syndicate")
+    roach_nft.mintGen0(accounts[2], 1, 25, "syndicate")
+    roach_nft.mintGen0(accounts[3], 1, 25, "syndicate")
+
+    data = roach_nft.getRoach(1)
+    assert data[6] == "Roach 1", "getRoach.name"
+    assert data[7] == accounts[1], "getRoach.owner"
+
+    data = roach_nft.getRoachBatch([1, 3, 2])
+    assert data[1][0] == "Roach 1", "getRoach.name"
+    assert data[1][1] == "Roach 3", "getRoach.name"
+    assert data[1][2] == "Roach 2", "getRoach.name"
+
+    assert data[2][0] == accounts[1], "getRoach.owner"
+    assert data[2][1] == accounts[3], "getRoach.owner"
+    assert data[2][2] == accounts[2], "getRoach.owner"
