@@ -36,7 +36,21 @@ def test_721a(accounts, roach_nft):
     with reverts(""): # TODO: correct error message
         r = roach_nft.ownerOf(0)
 
-    roach_nft.mintGen0(accounts[1], 2, 25, "syndicate")
+    tx = roach_nft.mintGen0(accounts[1], 2, 25, "shadow")
+
+    mint_event = tx.events[2]
+    assert mint_event.name == "Mint", "Mint event"
+    assert mint_event['tokenId'] == 1, "Mint event"
+    assert mint_event['syndicate'] == 'shadow', "Mint event"
+    assert mint_event['traitBonus'] == 25, "Mint event"
+    assert mint_event['account'] == accounts[1], "Mint event"
+
+    mint_event = tx.events[3]
+    assert mint_event.name == "Mint", "Mint event"
+    assert mint_event['tokenId'] == 2, "Mint event"
+    assert mint_event['syndicate'] == 'shadow', "Mint event"
+    assert mint_event['traitBonus'] == 25, "Mint event"
+    assert mint_event['account'] == accounts[1], "Mint event"
 
     assert roach_nft.ownerOf(1) == accounts[1]
     assert roach_nft.ownerOf(2) == accounts[1]

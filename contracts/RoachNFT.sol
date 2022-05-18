@@ -132,7 +132,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     /// @dev Only for gen0
     /// @dev Can be called only by authorized operator (GenesisSale contract)
     function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external onlyOperator {
-        uint tokenId = _currentIndex + 1;
+        uint tokenId = _currentIndex;
         _mint(to, count);
         for (uint i = 0; i < count; i++) {
             // do not save Roach struct to mapping for Gen0 because all data is default
