@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
+// Roach Racing Club: the first strategic p2e game with deflationary mechanisms (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
 import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/utils/Strings.sol";

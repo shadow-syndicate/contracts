@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
+// Roach Racing Club: the first strategic p2e game with deflationary mechanisms (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
 import "./ERC721A/ERC721A.sol";
@@ -60,15 +60,15 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     /// @return resistance   Resistance percentage (1234 = 12.34%)
     /// @return name         Roach name
     function getRoach(uint roachId)
-        external view
-        returns (
-            bytes memory genome,
-            uint40[2] memory parents,
-            uint40 creationTime,
-            uint40 revealTime,
-            uint40 generation,
-            uint16 resistance,
-            string memory name)
+    external view
+    returns (
+        bytes memory genome,
+        uint40[2] memory parents,
+        uint40 creationTime,
+        uint40 revealTime,
+        uint40 generation,
+        uint16 resistance,
+        string memory name)
     {
         require(_exists(roachId), "query for nonexistent token");
         Roach storage r = roach[roachId];
@@ -159,7 +159,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     function _canReveal(uint tokenId) internal view returns (bool) {
         Roach storage r = roach[tokenId];
         return
-            !_isRevealed(r);
+        !_isRevealed(r);
     }
 
     /// @notice Setups roach genome and give birth to it.
@@ -182,9 +182,9 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     /// @dev Returns a token ID owned by `owner` at a given `index` of its token list.
     ///      Use along with {balanceOf} to enumerate all of ``owner``'s tokens.
     function tokenOfOwnerByIndex(address owner, uint256 index)
-        public
-        view
-        returns (uint256 tokenId)
+    public
+    view
+    returns (uint256 tokenId)
     {
         uint count = 0;
         for (uint i = _startTokenId(); i <= _lastRoachId(); ++i) {

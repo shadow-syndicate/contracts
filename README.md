@@ -1,7 +1,8 @@
 ## Roach Racing Club Contracts
 
 ```
-TODO: add game description
+RRC is a strategic racing game where you can breed and train your Roach runners. The results of each race are driven by real-world data and depend on your strategic and tactical decisions. The game introduces novel gameplay features and an evolutionary breeding model with deflationary mechanisms. 
+
 ```
 
 ## Contracts structure
@@ -9,7 +10,7 @@ TODO: add game description
 # RoachNFT
 
 Base NFT storage. Stores token ownership, genomes, parents.
-Tokens are created in Egg stage.
+Tokens are created during the Egg stage.
 This contract is non-upgradable.
 
 ```
@@ -20,8 +21,7 @@ function getRoach(roachId)
 
 # Reveal
 
-To finalize creating and give birth to Roach token you should
-call reveal. There is birth cooldown period (by default 1 week).
+You should call reveal to finalize creating and give birth to the Roach token. There is a birth cooldown period (by default, 1 week).
 
 ```
 /// Setups roach genome and give birth to it
@@ -62,7 +62,7 @@ function calculateGenome(tokenSeed, traitBonus)
 
 # Metadata
 
-Upgradable contract that provides Metadata for Roach tokens. 
+An upgradeable contract that provides Metadata for Roach tokens.
 Full metadata will be available only after Roach is born.
 
 ```
@@ -72,8 +72,8 @@ function tokenURI(tokenId)
 
 ## Deployment workflow
 
-### Environment setup 
-We use [Brownie](https://eth-brownie.readthedocs.io/en/stable/install.html) framework for testing and develoyment.
+### Environment setup
+We use [Brownie](https://eth-brownie.readthedocs.io/en/stable/install.html) framework for testing and development.
 
 ```bash
 pip install eth-brownie
@@ -84,7 +84,7 @@ npm -g i ganache-cli
 
 ### Testing
 
-All test can be launched using command
+All tests can be launched using the command
 ```
 brownie test
 ```
@@ -97,7 +97,7 @@ export WEB3_INFURA_PROJECT_ID=<infura_project_id>
 export ETHERSCAN_TOKEN=<etherscan_api_token>
 export POLYGONSCAN_TOKEN=<polygoncan_api_token>
 ```
-Deploy command for Mainnet part: 
+Deploy command for Mainnet part:
 ```
 brownie run ./deploy_eth.py --network=mainnet # prod
 brownie run ./deploy_eth.py --network=rinkeby # testnet
@@ -108,7 +108,8 @@ brownie run ./deploy_polygon.py --network=polygon-main # prod
 brownie run ./deploy_polygon.py --network=polygon-test # testnet
 ```
 It is needed to request [testnet LINK](https://faucets.chain.link/rinkeby) to GenomeProviderChainlink contract.
-After link token is transferred to GenomeProviderChainlink contract you should call
+After link token is transferred to GenomeProviderChainlink contract, you should call
 ```
 function requestVrfSeed()
 ```
+

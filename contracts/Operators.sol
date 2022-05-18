@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// ***REMOVED***
+// Roach Racing Club: the first strategic p2e game with deflationary mechanisms (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
 import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC20/IERC20.sol";
@@ -37,7 +37,7 @@ contract Operators is Ownable {
     }
 
     /**
-     * @dev Owner can claim any tokens that transferred
+     * @dev Owner can claim any tokens that are transferred
      * to this contract address
      */
     function withdrawERC20(IERC20 _tokenContract, address _admin) external onlyOwner {
