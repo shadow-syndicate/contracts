@@ -42,7 +42,7 @@ function mintStage1(desiredCount, limitForAccount, traitBonus, syndicate, sigV, 
 
 ```javascript
 /// Takes payment and mints new roaches on Public Sale
-mintStage2(desiredCount, syndicate)
+function mintStage2(desiredCount, syndicate)
 ```
 
 # GenomeProviderChainlink
