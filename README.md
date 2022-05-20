@@ -37,7 +37,7 @@ function getSaleStatus(address account) external view
 
 ```javascript
 /// Takes payment and mints new roaches on Presale Sale
-function mintStage1(desiredCount, limitForAccount, traitBonus, syndicate, sigV, sigR, sigS)
+function mintStage1(desiredCount, limitForAccount, price, traitBonus, syndicate, sigV, sigR, sigS)
 ```
 
 ```javascript

@@ -17,14 +17,15 @@ contract GenesisSaleDebug is GenesisSale {
     }
 
     function mintStage1noSig(
-        uint wantCount,
+        uint desiredCount,
         uint limitForAccount,
+        uint price,
         uint8 traitBonus,
         string calldata syndicate
     )
         external payable
     {
-        _mintStage1(msg.sender, wantCount, limitForAccount, traitBonus, syndicate);
+        _mintStage1(msg.sender, desiredCount, limitForAccount, price, traitBonus, syndicate);
     }
 
     function setStage0(uint duration) external onlyOperator {

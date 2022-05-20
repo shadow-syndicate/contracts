@@ -93,12 +93,14 @@ contract GenesisSale is Operators {
     ///         Can be called twice if total minted token count doesn't exceed limitForAccount.
     /// @param desiredCount The number of roach to mint
     /// @param limitForAccount Original buy limit from whitelist
+    /// @param price One roach price from whitelist
     /// @param traitBonus Trait bonus from whitelist (12 means 12% bonus)
     /// @param syndicate (Optional) Syndicate name, that player wants join to. Selected syndicate will receive a bonus.
     /// @param sigV sigR sigS Signature that can be generated only by secret key, stored on game backend
     function mintStage1(
         uint desiredCount,
         uint limitForAccount,
+        uint price,
         uint8 traitBonus,
         string calldata syndicate,
         uint8 sigV,
@@ -107,8 +109,8 @@ contract GenesisSale is Operators {
     )
         external payable
     {
-        require(isValidSignature(msg.sender, limitForAccount, traitBonus, sigV, sigR, sigS), "Wrong signature");
-        _mintStage1(msg.sender, desiredCount, limitForAccount, traitBonus, syndicate);
+        require(isValidSignature(msg.sender, limitForAccount, price, traitBonus, sigV, sigR, sigS), "Wrong signature");
+        _mintStage1(msg.sender, desiredCount, limitForAccount, price, traitBonus, syndicate);
     }
 
     /// @notice returns left allowed tokens for minting on Presale if purchase is preformed using several transaction
@@ -119,13 +121,21 @@ contract GenesisSale is Operators {
             : 0;
     }
 
-    function _mintStage1(address account, uint desiredCount, uint limitForAccount, uint8 traitBonus, string calldata syndicate) internal {
+    function _mintStage1(
+        address account,
+        uint desiredCount,
+        uint limitForAccount,
+        uint price,
+        uint8 traitBonus,
+        string calldata syndicate)
+        internal
+    {
         uint stage = getSaleStage();
         require(stage == 1, "Presale not active");
         uint leftToMint = getAllowedToBuyForAccountOnPresale(account, limitForAccount);
         require(desiredCount <= leftToMint, 'Account limit reached');
 
-        _buy(account, desiredCount, syndicate, traitBonus);
+        _buy(account, desiredCount, price, syndicate, traitBonus);
     }
 
     /// @notice Takes payment and mints new roaches on Public Sale
@@ -134,16 +144,16 @@ contract GenesisSale is Operators {
     function mintStage2(uint desiredCount, string calldata syndicate) external payable {
         uint stage = getSaleStage();
         require(stage == 2, "Public sale not active");
-        _buy(msg.sender, desiredCount, syndicate, 0);
+        _buy(msg.sender, desiredCount, ROACH_PRICE, syndicate, 0);
     }
 
-    function _buy(address account, uint count, string calldata syndicate, uint8 traitBonus) internal {
+    function _buy(address account, uint count, uint price, string calldata syndicate, uint8 traitBonus) internal {
         require(count > 0, 'Min count is 1');
         uint soldCount = totalMinted();
         if (soldCount + count > TOTAL_TOKENS_ON_SALE) {
             count = TOTAL_TOKENS_ON_SALE - soldCount; // allow to buy left tokens
         }
-        uint needMoney = ROACH_PRICE * count;
+        uint needMoney = price * count;
         emit Purchase(account, count, traitBonus, syndicate);
         _mintRaw(account, count, traitBonus, syndicate);
         _acceptMoney(needMoney);
@@ -163,33 +173,33 @@ contract GenesisSale is Operators {
     /// Signatures
 
     /// @notice Internal function used in signature checking
-    function hashArguments(address account, uint limitForAccount, uint8 traitBonus)
+    function hashArguments(address account, uint limitForAccount, uint price, uint8 traitBonus)
         public pure returns (bytes32 msgHash)
     {
-        msgHash = keccak256(abi.encode(account, limitForAccount, traitBonus));
+        msgHash = keccak256(abi.encode(account, limitForAccount, price, traitBonus));
     }
 
     /// @notice Internal function used in signature checking
     function getSigner(
-        address account, uint limitForAccount, uint8 traitBonus,
+        address account, uint limitForAccount, uint price, uint8 traitBonus,
         uint8 sigV, bytes32 sigR, bytes32 sigS
     )
         public pure returns (address)
     {
-        bytes32 msgHash = hashArguments(account, limitForAccount, traitBonus);
+        bytes32 msgHash = hashArguments(account, limitForAccount, price, traitBonus);
         return ecrecover(msgHash, sigV, sigR, sigS);
     }
 
     /// @notice Internal function used in signature checking
     function isValidSignature(
-        address account, uint limitForAccount, uint8 traitBonus,
+        address account, uint limitForAccount, uint price, uint8 traitBonus,
         uint8 sigV, bytes32 sigR, bytes32 sigS
     )
         public
         view
         returns (bool)
     {
-        return getSigner(account, limitForAccount, traitBonus, sigV, sigR, sigS) == signerAddress;
+        return getSigner(account, limitForAccount, price, traitBonus, sigV, sigR, sigS) == signerAddress;
     }
 
     /// @notice Mints new NFT with selected parameters
