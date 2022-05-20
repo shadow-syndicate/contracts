@@ -1,9 +1,6 @@
 ## Roach Racing Club Contracts
 
-```
 RRC is a strategic racing game where you can breed and train your Roach runners. The results of each race are driven by real-world data and depend on your strategic and tactical decisions. The game introduces novel gameplay features and an evolutionary breeding model with deflationary mechanisms. 
-
-```
 
 ## Contracts structure
 
@@ -13,7 +10,7 @@ Base NFT storage. Stores token ownership, genomes, parents.
 Tokens are created during the Egg stage.
 This contract is non-upgradable.
 
-```
+```javascript
 /// Returns contract level metadata for roach
 function getRoach(roachId) 
     returns (genome, parents, creationTime, revealTime, generation, resistance, memory name) 
@@ -23,7 +20,7 @@ function getRoach(roachId)
 
 You should call reveal to finalize creating and give birth to the Roach token. There is a birth cooldown period (by default, 1 week).
 
-```
+```javascript
 /// Setups roach genome and give birth to it
 function reveal(tokenId, genome, tokenSeed, sigV, sigR, sigS)
 ```
@@ -32,19 +29,19 @@ function reveal(tokenId, genome, tokenSeed, sigV, sigR, sigS)
 
 Operates limited token sale. There can be only 10k Gen0 Roach tokens sold.
 
-```
+```javascript
 /// Returns current sale status:
 function getSaleStatus(address account) external view 
     returns (stage, leftToMint, nextStageTimestamp, price, allowedToMint) 
 ```
 
-```
+```javascript
 /// Takes payment and mints new roaches on Presale Sale
 function mintStage1(desiredCount, limitForAccount, traitBonus, syndicate, sigV, sigR, sigS)
 ```
 
-```
-Takes payment and mints new roaches on Public Sale
+```javascript
+/// Takes payment and mints new roaches on Public Sale
 mintStage2(desiredCount, syndicate)
 ```
 
@@ -73,7 +70,7 @@ check tokenSeeds and corresponding genomes.
 Genome is signed by the secret private key and transferred from Polygon network to Ethereum
 as part of the reveal process.
 
-```
+```javascript
 /// Calculates genome for each roach using tokenSeed as seed
 function calculateGenome(tokenSeed, traitBonus)
 ```
@@ -103,7 +100,7 @@ npm -g i ganache-cli
 ### Testing
 
 All tests can be launched using the command
-```
+```bash
 brownie test
 ```
 
@@ -116,18 +113,18 @@ export ETHERSCAN_TOKEN=<etherscan_api_token>
 export POLYGONSCAN_TOKEN=<polygoncan_api_token>
 ```
 Deploy command for Mainnet part:
-```
+```bash
 brownie run ./deploy_eth.py --network=mainnet # prod
 brownie run ./deploy_eth.py --network=rinkeby # testnet
 ```
 Deploy command Polygon part:
-```
+```bash
 brownie run ./deploy_polygon.py --network=polygon-main # prod
 brownie run ./deploy_polygon.py --network=polygon-test # testnet
 ```
 It is needed to request [testnet LINK](https://faucets.chain.link/rinkeby) to GenomeProviderChainlink contract.
 After link token is transferred to GenomeProviderChainlink contract, you should call
-```
+```javascript
 function requestVrfSeed()
 ```
 
