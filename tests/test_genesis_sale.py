@@ -293,3 +293,9 @@ def test_whitelist_price(accounts, GenesisSaleDebug, roach_nft):
     genesis_sale.mintStage1noSig(1, 10, WL_PRICE, BONUS, "", {'from':buyer, 'amount': PRICE, 'gasPrice': 0})
     after = buyer.balance()
     assert before - after == WL_PRICE, "use price from whitelist"
+
+    WL_PRICE = 0
+    before = buyer.balance()
+    genesis_sale.mintStage1noSig(1, 10, WL_PRICE, BONUS, "", {'from':buyer, 'gasPrice': 0})
+    after = buyer.balance()
+    assert before == after, "zero price whitelist"
