@@ -5,11 +5,12 @@ import json
 from brownie import *
 LOGGER = logging.getLogger(__name__)
 
-# Rinkeby https://docs.chain.link/docs/vrf-contracts/#rinkeby-testnet
-LINK_TONEN="0x01BE23585060835E02B77ef475b0Cc51aA1e0709"
-VRF_COORDINATOR="0xb3dCcb4Cf7a26f6cf6B120Cf5A73875B7BBc655B"
-KEY_HASH="0x2ed0feb3e7fd2022120aa84fab1945545a9f2ffc9076fd6156fa96eaff4c1311"
-FEE=0.1e18
+# https://docs.chain.link/docs/vrf-contracts/
+# v2
+VRF_COORDINATOR="0x6168499c0cFfCaCD319c818142124B7A15E857ab"
+KEY_HASH="0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc"
+subscriptionId=2667
+
 SECRET_HASH='0x1234'
 PUBLISH_SOURCES=True
 
@@ -44,10 +45,9 @@ def load_config():
 
 def main():
     genome_provider = GenomeProviderChainlink.deploy(SECRET_HASH,
-                                                     LINK_TONEN,
                                                      VRF_COORDINATOR,
                                                      KEY_HASH,
-                                                     FEE,
+                                                     subscriptionId,
                                                      {'from':accounts[0]},
                                                      publish_source=PUBLISH_SOURCES
                                                      )

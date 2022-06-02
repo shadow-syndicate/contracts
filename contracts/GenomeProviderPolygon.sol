@@ -44,21 +44,45 @@ contract GenomeProviderPolygon is Operators {
 
     mapping(uint => TraitConfig) public traits; // slot -> array of trait weight
 
-    uint256 public vrfSeed;
+    mapping(uint => uint) public vrfSeeds; // tokenId => random
+    mapping(uint => uint) public seed1s; // tokenId => seed1
+    mapping(uint => uint) public tokenSeeds; // tokenId => tokenSeed
     uint256 public secretSeedHash;
 
     event SecretSeed(uint256 secretSeedHash);
+    event Reveal(uint tokenId, uint seed1, uint vrfSeed, uint tokenSeed);
 
     constructor(uint256 _secretSeedHash) {
         secretSeedHash = _secretSeedHash;
         emit SecretSeed(secretSeedHash);
     }
 
-    /// @dev Function is used to check tokenSeed generation after secretSeed is published
-    function getTokenSeed(uint tokenId, uint traitBonus, uint secretSeed, uint mintBlockHash)
-        external view returns (uint token_seed)
+    function isRevealed(uint tokenId) external view returns (bool) {
+        return tokenSeeds[tokenId] != 0;
+    }
+
+    function getTokenSeed(uint tokenId) external view returns (uint) {
+        return tokenSeeds[tokenId];
+    }
+
+    function calculateSeed1(uint tokenId, uint traitBonus, uint secretSeed)
+        public view returns (bytes32 seed1)
     {
-        return uint(keccak256(abi.encodePacked(tokenId, traitBonus, vrfSeed, secretSeed, mintBlockHash)));
+        return keccak256(abi.encodePacked(tokenId, traitBonus, secretSeed));
+    }
+
+    /// @dev Function is used to check tokenSeed generation after secretSeed is published
+    function calculateTokenSeed(uint tokenId, uint traitBonus, uint secretSeed, uint vrfSeed)
+        external view returns (uint tokenSeed)
+    {
+        uint seed1 = uint(calculateSeed1(tokenId, traitBonus, secretSeed));
+        return uint(keccak256(abi.encodePacked(seed1, vrfSeed)));
+    }
+
+    function calculateTokenSeedFromSeed1(uint seed1, uint vrfSeed)
+        public view returns (uint token_seed)
+    {
+        return uint(keccak256(abi.encodePacked(seed1, vrfSeed)));
     }
 
     /// @dev Calculates genome for each roach using tokenSeed as seed
@@ -67,21 +91,26 @@ contract GenomeProviderPolygon is Operators {
     }
 
     /// @dev Called only after contract is deployed and before genomes are generated
-    function requestVrfSeed() external onlyOwner {
-        require(vrfSeed == 0, "Can't call twice");
-        _requestRandomness();
+    // TODO: add owner sig
+    function requestReveal(uint tokenId, uint seed1) external onlyOperator {
+        require(seed1s[tokenId] == 0, "Can't call twice"); // TODO:
+        seed1s[tokenId] = seed1;
+        _requestRandomness(tokenId);
     }
 
     /// @dev Stub function for filling random, will be overriden in Chainlink version
-    function _requestRandomness() internal virtual {
+    function _requestRandomness(uint tokenId) internal virtual {
         uint256 randomness = uint(keccak256(abi.encodePacked(block.timestamp)));
-        _onRandomnessArrived(randomness);
+        _onRandomnessArrived(tokenId, randomness);
     }
 
     /// @dev Saves Chainlink VRF random value as vrfSeed
-    function _onRandomnessArrived(uint256 _randomness) internal {
-        require(vrfSeed == 0, "Can't call twice");
-        vrfSeed = _randomness;
+    function _onRandomnessArrived(uint tokenId, uint256 _randomness) internal {
+        require(vrfSeeds[tokenId] == 0, "Can't call twice");
+        vrfSeeds[tokenId] = _randomness;
+        uint tokenSeed = calculateTokenSeedFromSeed1(seed1s[tokenId], vrfSeeds[tokenId]);
+        tokenSeeds[tokenId] = tokenSeed;
+        emit Reveal(tokenId, seed1s[tokenId], vrfSeeds[tokenId], tokenSeed);
     }
 
     /// @dev Setups genome configuration
