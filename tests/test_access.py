@@ -9,7 +9,7 @@ def test_access_genome_provider(accounts, GenomeProviderPolygon):
     provider = accounts[0].deploy(GenomeProviderPolygon, secret_hash)
 
     with reverts("Access denied"):
-        provider.requestReveal(1, 2, {'from':accounts[1]})
+        provider.requestReveal(1, 2, 3, {'from':accounts[1]})
 
     with reverts("Access denied"):
         provider.setTraitConfig(1, [1], [0,1,2,3], [1,3,4,1], [5,2,1,1], {'from':accounts[1]})

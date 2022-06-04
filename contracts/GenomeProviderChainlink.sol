@@ -14,7 +14,7 @@ contract GenomeProviderChainlink is GenomeProviderPolygon, VRFConsumerBaseV2 {
     uint256 public chainLinkFee;
     uint64 subscriptionId;
     VRFCoordinatorV2Interface vrfCoordinator;
-    uint32 constant callbackGasLimit = 500000;
+    uint32 constant callbackGasLimit = 2_000_000;
     uint16 constant requestConfirmations = 3;
     mapping(uint => uint) public requests;
 

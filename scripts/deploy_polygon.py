@@ -42,8 +42,31 @@ def load_config():
     print(result)
     return result
 
+def create_config():
+    slots = json.load(open('config/slots.json',))
+    trait_type = json.load(open('config/trait_type.json',))
+    result = {}
+    for slot in slots:
+        key = trait_type[slot]
+        result[key] = {
+            "weight": [],
+            "weightMaxBonus": [],
+            "data": [],
+            "slots": slots[slot]
+        }
+        for i in range(100):
+            for k in range(len(slots[slot])):
+                result[key]["data"].append(i)
+            result[key]["weight"].append(1)
+            result[key]["weightMaxBonus"].append(1)
+
+    print(result)
+    return result
 
 def main():
+    # config = load_config()
+    config = create_config()
+
     genome_provider = GenomeProviderChainlink.deploy(SECRET_HASH,
                                                      VRF_COORDINATOR,
                                                      KEY_HASH,
@@ -51,7 +74,6 @@ def main():
                                                      {'from':accounts[0]},
                                                      publish_source=PUBLISH_SOURCES
                                                      )
-    config = load_config()
     for c in config:
         genome_provider.setTraitConfig(c,
                                        config[c]["slots"],
