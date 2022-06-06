@@ -176,8 +176,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
 
     function _canReveal(uint tokenId) internal view returns (bool) {
         Roach storage r = roach[tokenId];
-        return
-        !_isRevealed(r);
+        return !_isRevealed(r);
     }
 
     /// @notice Setups roach genome and give birth to it.
@@ -200,9 +199,9 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     /// @dev Returns a token ID owned by `owner` at a given `index` of its token list.
     ///      Use along with {balanceOf} to enumerate all of ``owner``'s tokens.
     function tokenOfOwnerByIndex(address owner, uint256 index)
-    public
-    view
-    returns (uint256 tokenId)
+        public
+        view
+        returns (uint256 tokenId)
     {
         uint count = 0;
         for (uint i = _startTokenId(); i <= _lastRoachId(); ++i) {
