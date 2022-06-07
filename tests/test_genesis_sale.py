@@ -111,7 +111,7 @@ def test_sale_ended_soldout(accounts, GenesisSaleDebug, roach_nft):
     genesis_sale.mintStage1noSig(3, 10, 0, 0, "", {'from':buyer, 'amount': 300})
 
     status = genesis_sale.getSaleStatus(buyer, 0)
-    assert status[0] == 3, "stage2 ended"
+    assert status[0] == 2, "stage2 ended"
 
     with reverts("Sale not active"):
         genesis_sale.mintStage1noSig(1, 1, 1, 1, "", {'from':buyer, 'amount': 100})
@@ -131,7 +131,7 @@ def test_buy_left_tokens(accounts, GenesisSaleDebug, roach_nft):
     genesis_sale.mintStage1noSig(5, 5, 0, 0, "", {'from':buyer, 'amount': 500, 'gas_price': 0})
 
     status = genesis_sale.getSaleStatus(buyer, 0)
-    assert status[0] == 3, "stage2 ended"
+    assert status[0] == 2, "stage2 ended"
 
     with reverts("Sale not active"):
         genesis_sale.mintStage1noSig(1, 1, 0, 0, "", {'from':buyer, 'amount': 100})
@@ -176,7 +176,7 @@ def test_buy_all_tokens_on_sale(accounts, GenesisSaleDebug, roach_nft):
     genesis_sale.mintStage1noSig(3, 10, PRICE, 25, "", {'from':buyer, 'amount': 300})
 
     status = genesis_sale.getSaleStatus(buyer, 10)
-    assert status[0] == 3, "Sale is over"
+    assert status[0] == 2, "Sale is over"
     assert status[1] == 0, "left to mint"
 
 

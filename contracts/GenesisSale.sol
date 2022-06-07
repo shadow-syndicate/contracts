@@ -73,7 +73,7 @@ contract GenesisSale is Operators {
     function getSaleStage() public view returns (uint) {
         return isPresaleActive() ? 1 :
             block.timestamp < SALE_START ? 0 :
-            3;
+            2;
     }
 
     /// @notice Takes payment and mints new roaches on Presale Sale.

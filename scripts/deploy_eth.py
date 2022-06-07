@@ -13,8 +13,8 @@ accounts.add(private_key)
 def main():
     print('Deployer account= {}'.format(accounts[0]))
 
-    metadata = Metadata.deploy("https://rrcdevmeta.kindex.lv/meta/roach/v17/",
-                               "https://rrcdevmeta.kindex.lv/meta/contract/v17/",
+    metadata = Metadata.deploy("https://rrcdevmeta.kindex.lv/meta/roach/v18/",
+                               "https://rrcdevmeta.kindex.lv/meta/contract/v18/",
                                {'from':accounts[0]},
                                 publish_source=PUBLISH_SOURCES
     )
@@ -29,7 +29,7 @@ def main():
     roach_contract.addOperator(genesis_sale, {'from':accounts[0], "required_confs": 0})
     genesis_sale.addOperator("0x549E82b2e4831E3d2bCD6dA4a6eBbBf43692D45b", {'from':accounts[0], "required_confs": 0})
 
-    reveal_contract = Reveal.deploy(roach_contract, {'from':accounts[0]},
-                                     publish_source=PUBLISH_SOURCES
-                                     )
-    roach_contract.addOperator(reveal_contract, {'from':accounts[0], "required_confs": 0})
+    # reveal_contract = Reveal.deploy(roach_contract, {'from':accounts[0]},
+    #                                  publish_source=PUBLISH_SOURCES
+    #                                  )
+    # roach_contract.addOperator(reveal_contract, {'from':accounts[0], "required_confs": 0})
