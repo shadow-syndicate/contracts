@@ -4,19 +4,19 @@ from brownie import Wei, reverts
 
 LOGGER = logging.getLogger(__name__)
 
-def test_presale_happy_path(accounts, GenesisSaleDebug, roach_nft):
+def test_sale_happy_path(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
     stage1time = round(time.time()) - 1
     stage1duration = 60 * 60 * 24
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, stage1duration, PRICE, 10_000)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, stage1duration, 10_000)
     roach_nft.addOperator(genesis_sale)
 
     ALLOWED = 5
     BONUS = 10
 
     status = genesis_sale.getSaleStatus(buyer, 0)
-    assert status[0] == 1, "presale is active"
+    assert status[0] == 1, "sale is active"
     assert status[1] == 10_000, "left to mint"
     assert status[2] == stage1time + stage1duration, "stage1 finish time"
     assert status[4] == 0, "allowedToMintForAccount"
@@ -24,7 +24,7 @@ def test_presale_happy_path(accounts, GenesisSaleDebug, roach_nft):
     assert roach_nft.balanceOf(buyer) == 0
 
 
-    assert genesis_sale.getAllowedToBuyForAccountOnPresale(buyer, ALLOWED) == ALLOWED, "getAllowedToBuyForAccountOnPresale"
+    assert genesis_sale.getAllowedToBuyForAccount(buyer, ALLOWED) == ALLOWED, "getAllowedToBuyForAccount"
 
     with reverts("Account limit reached"):
         genesis_sale.mintStage1noSig(1, 0, PRICE, BONUS, "", {'from':buyer, 'amount': 100})
@@ -42,7 +42,7 @@ def test_presale_happy_path(accounts, GenesisSaleDebug, roach_nft):
     status = genesis_sale.getSaleStatus(buyer, ALLOWED)
     assert status[4] == ALLOWED - 1, "allowedToMintForAccount"
 
-    assert genesis_sale.getAllowedToBuyForAccountOnPresale(buyer, ALLOWED) == ALLOWED - 1, "getAllowedToBuyForAccountOnPresale"
+    assert genesis_sale.getAllowedToBuyForAccount(buyer, ALLOWED) == ALLOWED - 1, "getAllowedToBuyForAccount"
 
     tx = genesis_sale.mintStage1noSig(4, ALLOWED, PRICE, BONUS, "abc", {'from':buyer, 'amount': 400})
 
@@ -53,126 +53,98 @@ def test_presale_happy_path(accounts, GenesisSaleDebug, roach_nft):
     assert e['syndicate'] == 'abc'
     assert e['account'] == '0x33A4622B82D4c04a53e170c638B944ce27cffce3'
 
-    assert genesis_sale.getAllowedToBuyForAccountOnPresale(buyer, ALLOWED) == 0, "getAllowedToBuyForAccountOnPresale"
+    assert genesis_sale.getAllowedToBuyForAccount(buyer, ALLOWED) == 0, "getAllowedToBuyForAccount"
 
     assert roach_nft.balanceOf(buyer) == 5, "balance after mint is 5"
 
     with reverts("Account limit reached"):
         genesis_sale.mintStage1noSig(1, ALLOWED, PRICE, BONUS, "", {'from':buyer, 'amount': 100})
 
-    with reverts("Public sale not active"):
-        genesis_sale.mintStage2(1, "", {'from':buyer, 'amount': 100})
-
-
-def test_sale_stage2_happy_path(accounts, GenesisSaleDebug, roach_nft):
-    buyer = accounts[1]
-    stage1start = round(time.time()) - 10
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1start, 5, 100, 10_000)
-    roach_nft.addOperator(genesis_sale)
-    assert roach_nft.balanceOf(buyer) == 0
-
-    with reverts("Insufficient money"):
-        genesis_sale.mintStage2(1, "", {'from':buyer, 'amount': 99})
-
-    genesis_sale.mintStage2(1, "", {'from':buyer, 'amount': 100})
-    assert roach_nft.balanceOf(buyer) == 1
-
-    status = genesis_sale.getSaleStatus(buyer, 0)
-    assert status[0] == 2, "stage2 started"
-    assert status[2] == 0, "stage2 no finish time"
-
-    with reverts("Presale not active"):
-        genesis_sale.mintStage1noSig(1, 10, 10, 10, "", {'from':buyer, 'amount': 100})
 
 def test_withdraw(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
     stage1start = round(time.time()) - 10
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1start, 5, 100, 10_000)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1start, 50, 10_000)
     roach_nft.addOperator(genesis_sale)
 
     before = buyer.balance()
-    genesis_sale.mintStage2(13, "", {'from':buyer, 'amount': 1500, 'gasPrice': 0})
+    genesis_sale.mintStage1noSig(13, 13, 0, 0, "", {'from':buyer, 'amount': 1500, 'gasPrice': 0})
     assert roach_nft.balanceOf(buyer) == 13
     after = buyer.balance()
-    assert after - before == -1300, "Refund 200"
+    assert after - before == -1500, "No refund - take all donation"
 
     before = accounts[0].balance()
     genesis_sale.withdrawEther({'from': accounts[0], 'gasPrice': 0})
     after = accounts[0].balance()
-    assert after - before == 1300, "Withdraw all ether"
+    assert after - before == 1500, "Withdraw all ether"
 
 
 def test_sale_not_started(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
     stage1time = round(time.time()) + 10
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, 5, PRICE, 10_000)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, 5, 10_000)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
     ALLOWED = 5
     BONUS = 10
 
-    with reverts("Presale not active"):
+    with reverts("Sale not active"):
         genesis_sale.mintStage1noSig(1, ALLOWED, PRICE, BONUS, "", {'from':buyer, 'amount': 100})
 
-    with reverts("Public sale not active"):
-        genesis_sale.mintStage2(1, "", {'from':buyer, 'amount': 100})
-
     status = genesis_sale.getSaleStatus(buyer, 0)
-    assert status[0] == 0, "presale not started"
+    assert status[0] == 0, "sale not started"
     assert status[2] == stage1time, "stage1 start time"
 
 
-def test_sale_ended(accounts, GenesisSaleDebug, roach_nft):
+def test_sale_ended_soldout(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 5, 100, 3)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
     status = genesis_sale.getSaleStatus(buyer, 0)
-    assert status[0] == 2, "stage2 active"
-    assert status[2] == 0, "no finish time"
+    assert status[0] == 1, "stage1 active"
+    assert status[2] != 0, "finish time set"
 
-    genesis_sale.mintStage2(3, "", {'from':buyer, 'amount': 300})
+    genesis_sale.mintStage1noSig(3, 10, 0, 0, "", {'from':buyer, 'amount': 300})
 
     status = genesis_sale.getSaleStatus(buyer, 0)
     assert status[0] == 3, "stage2 ended"
 
-    with reverts("Presale not active"):
+    with reverts("Sale not active"):
         genesis_sale.mintStage1noSig(1, 1, 1, 1, "", {'from':buyer, 'amount': 100})
 
-    with reverts("Public sale not active"):
-        genesis_sale.mintStage2(1, "", {'from':buyer, 'amount': 100})
 
 def test_buy_left_tokens(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 5, 100, 3)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
     balanceBefore = buyer.balance()
 
     status = genesis_sale.getSaleStatus(buyer, 0)
-    assert status[0] == 2, "stage2 active"
+    assert status[0] == 1, "stage2 active"
 
-    genesis_sale.mintStage2(5, "", {'from':buyer, 'amount': 500, 'gas_price': 0})
+    genesis_sale.mintStage1noSig(5, 5, 0, 0, "", {'from':buyer, 'amount': 500, 'gas_price': 0})
 
     status = genesis_sale.getSaleStatus(buyer, 0)
     assert status[0] == 3, "stage2 ended"
 
-    with reverts("Public sale not active"):
-        genesis_sale.mintStage2(1, "", {'from':buyer, 'amount': 100})
+    with reverts("Sale not active"):
+        genesis_sale.mintStage1noSig(1, 1, 0, 0, "", {'from':buyer, 'amount': 100})
     assert roach_nft.balanceOf(buyer) == 3, 'Buy only 3 of 5 requested'
 
     balanceAfter = buyer.balance()
-    assert balanceBefore - balanceAfter == 3*100, 'Take money only for 3 roaches'
+    assert balanceBefore - balanceAfter == 500, 'Take all money'
 
 
 def test_not_enough_money(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, PRICE, 3)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     # genesis_sale.setWhitelistAddress(buyer, 5, 10, {'from':accounts[0]})
 
@@ -192,10 +164,10 @@ def test_not_enough_money(accounts, GenesisSaleDebug, roach_nft):
     assert status[4] == 5, "left to mint for acount"
 
 
-def test_buy_all_tokens_on_presale(accounts, GenesisSaleDebug, roach_nft):
+def test_buy_all_tokens_on_sale(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, PRICE, 3)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     # genesis_sale.setWhitelistAddress(buyer, 5, 10, {'from':accounts[0]})
 
@@ -211,7 +183,7 @@ def test_buy_all_tokens_on_presale(accounts, GenesisSaleDebug, roach_nft):
 def test_total_supply(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, PRICE, 100)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 100)
     roach_nft.addOperator(genesis_sale)
 
     assert genesis_sale.totalMinted() == 0, "Default supply 100"
@@ -225,20 +197,20 @@ def test_total_supply(accounts, GenesisSaleDebug, roach_nft):
     assert status[1] == 96, "left to mint"
 
 def test_set_signer(accounts, GenesisSaleDebug, roach_nft):
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 100, 100)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 100)
 
     assert genesis_sale.signerAddress() == accounts[0], "default signer"
 
     genesis_sale.setSigner(accounts[2])
     assert genesis_sale.signerAddress() == accounts[2], "new signer"
 
-def test_minted_count_limit(accounts, GenesisSaleDebug, roach_nft):
+def test_operator_mint_count_limit(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 5, 100, 3)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
-    genesis_sale.mintStage2(1, "", {'from':buyer, 'amount': 100, 'gas_price': 0})
+    genesis_sale.mintStage1noSig(1, 1, 100, 0, "", {'from':buyer, 'amount': 100, 'gas_price': 0})
 
     assert genesis_sale.totalMinted() == 1, "totalMinted"
 
@@ -251,7 +223,7 @@ def test_minted_count_limit(accounts, GenesisSaleDebug, roach_nft):
 
 def test_sig(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 100, 3)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
 
     sig = {"sig":
@@ -266,7 +238,7 @@ def test_sig(accounts, GenesisSaleDebug, roach_nft):
     }
 
     with reverts("Wrong signature"):
-        genesis_sale.mintStage1(1, sig["limit"], sig["price"], sig["bonus"], "",
+        genesis_sale.mint(1, sig["limit"], sig["price"], sig["bonus"], "",
                             sig["sig"]["v"], sig["sig"]["r"], sig["sig"]["s"],
                             {'from':buyer, 'amount': 100})
     isValid = genesis_sale.isValidSignature(sig["account"], sig["limit"], sig["price"], sig["bonus"],
@@ -282,7 +254,7 @@ def test_whitelist_price(accounts, GenesisSaleDebug, roach_nft):
     buyer = accounts[1]
     PRICE = 100
     BONUS = 25
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, PRICE, 3)
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
 
     with reverts("Insufficient money"):
@@ -292,7 +264,7 @@ def test_whitelist_price(accounts, GenesisSaleDebug, roach_nft):
     before = buyer.balance()
     genesis_sale.mintStage1noSig(1, 10, WL_PRICE, BONUS, "", {'from':buyer, 'amount': PRICE, 'gasPrice': 0})
     after = buyer.balance()
-    assert before - after == WL_PRICE, "use price from whitelist"
+    assert before - after == PRICE, "take all money"
 
     WL_PRICE = 0
     before = buyer.balance()

@@ -7,31 +7,26 @@ import "../interfaces/IRoachNFT.sol";
 
 /// @title Genesis collection sale contract
 /// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
-/// @dev Sell 10k tokens with fixed price in two stages
-/// @dev Stage 1: Whitelisted presale with limit by account
-/// @dev Stage 2: Public sale without limit
+/// @dev Distribute 10k tokens with arbitrary price to whitelisted accounts with limit
 contract GenesisSale is Operators {
 
-    uint public ROACH_PRICE;
     uint public TOTAL_TOKENS_ON_SALE = 10_000;
-    uint public STAGE1_START;
-    uint public STAGE1_DURATION;
+    uint public SALE_START;
+    uint public SALE_DURATION;
     address public signerAddress;
     IRoachNFT public roachContract;
 
-    event Purchase(address indexed account, uint count, uint traitBonus, string syndicate);
+    event Purchase(address indexed account, uint count, uint traitBonus, string syndicate, uint ethValue);
 
     constructor(
         IRoachNFT _roachContract,
         uint stage1startTime,
         uint stage1durationSeconds,
-        uint price,
         uint totalTokensOnSale)
     {
         roachContract = _roachContract;
-        STAGE1_START = stage1startTime;
-        STAGE1_DURATION = stage1durationSeconds;
-        ROACH_PRICE = price;
+        SALE_START = stage1startTime;
+        SALE_DURATION = stage1durationSeconds;
         TOTAL_TOKENS_ON_SALE = totalTokensOnSale;
         signerAddress = msg.sender;
     }
@@ -52,15 +47,14 @@ contract GenesisSale is Operators {
     {
         stage = getSaleStage();
 
-        price = ROACH_PRICE;
+        price = 0;
         nextStageTimestamp =
-            stage == 0 ? STAGE1_START :
-            stage == 1 ? STAGE1_START + STAGE1_DURATION :
+            stage == 0 ? SALE_START :
+            stage == 1 ? SALE_START + SALE_DURATION :
             0;
         leftToMint = int(TOTAL_TOKENS_ON_SALE) - int(totalMinted());
         allowedToMint =
-            stage == 1 ? (int)(getAllowedToBuyForAccountOnPresale(account, limitForAccount)) :
-            stage == 2 ? leftToMint :
+            stage == 1 ? (int)(getAllowedToBuyForAccount(account, limitForAccount)) :
             int(0);
     }
 
@@ -70,21 +64,15 @@ contract GenesisSale is Operators {
     }
 
     function isPresaleActive() public view returns (bool) {
-        return STAGE1_START <= block.timestamp
-            && block.timestamp < STAGE1_START + STAGE1_DURATION
+        return SALE_START <= block.timestamp
+            && block.timestamp < SALE_START + SALE_DURATION
             && totalMinted() < TOTAL_TOKENS_ON_SALE;
     }
 
-    function isSaleStage2Active() public view returns (bool) {
-        return STAGE1_START + STAGE1_DURATION <= block.timestamp
-            && totalMinted() < TOTAL_TOKENS_ON_SALE;
-    }
-
-    /// @return stage One of number 0..3: 0 - presale not started. 1 - Presale. 2 - Public sale. 3 - sale is over.
+    /// @return stage One of number 0..3: 0 - presale not started. 1 - Sale. 3 - sale is over.
     function getSaleStage() public view returns (uint) {
         return isPresaleActive() ? 1 :
-            isSaleStage2Active() ? 2 :
-            block.timestamp < STAGE1_START ? 0 :
+            block.timestamp < SALE_START ? 0 :
             3;
     }
 
@@ -97,7 +85,7 @@ contract GenesisSale is Operators {
     /// @param traitBonus Trait bonus from whitelist (12 means 12% bonus)
     /// @param syndicate (Optional) Syndicate name, that player wants join to. Selected syndicate will receive a bonus.
     /// @param sigV sigR sigS Signature that can be generated only by secret key, stored on game backend
-    function mintStage1(
+    function mint(
         uint desiredCount,
         uint limitForAccount,
         uint price,
@@ -110,18 +98,18 @@ contract GenesisSale is Operators {
         external payable
     {
         require(isValidSignature(msg.sender, limitForAccount, price, traitBonus, sigV, sigR, sigS), "Wrong signature");
-        _mintStage1(msg.sender, desiredCount, limitForAccount, price, traitBonus, syndicate);
+        _mint(msg.sender, desiredCount, limitForAccount, price, traitBonus, syndicate);
     }
 
     /// @notice returns left allowed tokens for minting on Presale if purchase is preformed using several transaction
-    function getAllowedToBuyForAccountOnPresale(address account, uint limitForAccount) public view returns (uint) {
+    function getAllowedToBuyForAccount(address account, uint limitForAccount) public view returns (uint) {
         uint256 numberMinted = roachContract.getNumberMinted(account);
         return limitForAccount > numberMinted
             ? limitForAccount - numberMinted
             : 0;
     }
 
-    function _mintStage1(
+    function _mint(
         address account,
         uint desiredCount,
         uint limitForAccount,
@@ -131,20 +119,11 @@ contract GenesisSale is Operators {
         internal
     {
         uint stage = getSaleStage();
-        require(stage == 1, "Presale not active");
-        uint leftToMint = getAllowedToBuyForAccountOnPresale(account, limitForAccount);
+        require(stage == 1, "Sale not active");
+        uint leftToMint = getAllowedToBuyForAccount(account, limitForAccount);
         require(desiredCount <= leftToMint, 'Account limit reached');
 
         _buy(account, desiredCount, price, syndicate, traitBonus);
-    }
-
-    /// @notice Takes payment and mints new roaches on Public Sale
-    /// @param desiredCount The number of roaches to mint
-    /// @param syndicate (Optional) Syndicate name, that player wants join to. Selected syndicate will receive a bonus.
-    function mintStage2(uint desiredCount, string calldata syndicate) external payable {
-        uint stage = getSaleStage();
-        require(stage == 2, "Public sale not active");
-        _buy(msg.sender, desiredCount, ROACH_PRICE, syndicate, 0);
     }
 
     function _buy(address account, uint count, uint price, string calldata syndicate, uint8 traitBonus) internal {
@@ -154,16 +133,13 @@ contract GenesisSale is Operators {
             count = TOTAL_TOKENS_ON_SALE - soldCount; // allow to buy left tokens
         }
         uint needMoney = price * count;
-        emit Purchase(account, count, traitBonus, syndicate);
+        emit Purchase(account, count, traitBonus, syndicate, msg.value);
         _mintRaw(account, count, traitBonus, syndicate);
         _acceptMoney(needMoney);
     }
 
     function _acceptMoney(uint needMoney) internal {
         require(msg.value >= needMoney, "Insufficient money");
-        if (msg.value > needMoney) {
-            payable(msg.sender).transfer(msg.value - needMoney);
-        }
     }
 
     function _mintRaw(address to, uint count, uint8 traitBonus, string calldata syndicate) internal {

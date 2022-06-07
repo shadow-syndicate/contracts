@@ -10,9 +10,8 @@ contract GenesisSaleDebug is GenesisSale {
         IRoachNFT _roachContract,
         uint stage1startTime,
         uint stage1durationSeconds,
-        uint price,
         uint totalTokensOnSale)
-        GenesisSale(_roachContract, stage1startTime, stage1durationSeconds, price, totalTokensOnSale)
+        GenesisSale(_roachContract, stage1startTime, stage1durationSeconds, totalTokensOnSale)
     {
     }
 
@@ -25,24 +24,24 @@ contract GenesisSaleDebug is GenesisSale {
     )
         external payable
     {
-        _mintStage1(msg.sender, desiredCount, limitForAccount, price, traitBonus, syndicate);
+        _mint(msg.sender, desiredCount, limitForAccount, price, traitBonus, syndicate);
     }
 
     function setStage0(uint duration) external onlyOperator {
-        STAGE1_START = block.timestamp + duration;
+        SALE_START = block.timestamp + duration;
     }
 
     function setStage1(uint duration) external onlyOperator {
-        STAGE1_START = block.timestamp;
-        STAGE1_DURATION = duration;
+        SALE_START = block.timestamp;
+        SALE_DURATION = duration;
     }
 
     function setStage2() external onlyOperator {
-        STAGE1_START = block.timestamp - STAGE1_DURATION;
+        SALE_START = block.timestamp - SALE_DURATION;
     }
 
     function setStage3() external onlyOperator {
-        STAGE1_START = block.timestamp - STAGE1_DURATION;
+        SALE_START = block.timestamp - SALE_DURATION;
     }
 
 }

@@ -94,7 +94,9 @@ contract GenomeProviderPolygon is Operators {
     }
 
     /// @dev Called only after contract is deployed and before genomes are generated
-    function requestReveal(uint tokenId, uint8 traitBonus, uint8 ownerSigV, bytes32 ownerSigR, bytes32 ownerSigS) external onlyOperator {
+    function requestReveal(uint tokenId, uint8 traitBonus, uint8 ownerSigV, bytes32 ownerSigR, bytes32 ownerSigS)
+        external onlyOperator
+    {
         require(!roach[tokenId].requested, "Can't call twice");
         roach[tokenId].requested = true;
         roach[tokenId].traitBonus = traitBonus;

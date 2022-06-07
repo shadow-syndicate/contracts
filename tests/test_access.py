@@ -21,7 +21,7 @@ def test_access_genome_provider(accounts, GenomeProviderPolygon):
 def test_access(accounts, GenesisSale, roach_nft, reveal):
     stage1time = round(time.time()) - 1
     stage1duration = 60 * 60 * 24
-    genesis_sale = accounts[0].deploy(GenesisSale, roach_nft, stage1time, stage1duration, 100, 10_000)
+    genesis_sale = accounts[0].deploy(GenesisSale, roach_nft, stage1time, stage1duration, 10_000)
 
     with reverts("Access denied"):
         roach_nft.mint(accounts[0], "0x0", [0,0], 0, 0, {'from':accounts[1]})

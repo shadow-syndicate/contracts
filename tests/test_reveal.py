@@ -7,13 +7,13 @@ LOGGER = logging.getLogger(__name__)
 def test_reveal_happy_path(accounts, chain, GenesisSaleDebug, roach_nft, reveal):
     buyer = accounts[1]
     stage1time = round(time.time()) - 10
-    stage1duration = 5
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, stage1duration, 1, 10_000)
+    stage1duration = 50
+    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, stage1duration, 10_000)
     roach_nft.addOperator(genesis_sale)
 
     assert roach_nft.balanceOf(buyer) == 0
 
-    genesis_sale.mintStage2(5, "", {'from':buyer, 'amount': 5})
+    genesis_sale.mintStage1noSig(5, 5, 0, 0, "", {'from':buyer, 'amount': 5})
 
     assert roach_nft.balanceOf(buyer) == 5, "balance after mint is 5"
 
