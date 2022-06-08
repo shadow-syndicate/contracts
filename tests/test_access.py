@@ -5,8 +5,7 @@ from brownie import Wei, reverts
 LOGGER = logging.getLogger(__name__)
 
 def test_access_genome_provider(accounts, GenomeProviderPolygon):
-    secret_hash = "0x00112233445566778899"
-    provider = accounts[0].deploy(GenomeProviderPolygon, secret_hash)
+    provider = accounts[0].deploy(GenomeProviderPolygon)
 
     with reverts("Access denied"):
         provider.requestReveal(1, 2, 3, "0x1234", "0xabcd", {'from':accounts[1]})

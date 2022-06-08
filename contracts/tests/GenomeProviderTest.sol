@@ -6,9 +6,6 @@ import "../GenomeProviderPolygon.sol";
 
 contract GenomeProviderTest is GenomeProviderPolygon {
 
-    constructor(uint256 _secret_seed_hash) GenomeProviderPolygon(_secret_seed_hash) {
-    }
-
     function getTraitWeightSum(uint traitId) external view returns (uint32) {
         return traits[traitId].sum;
     }

@@ -20,12 +20,10 @@ contract GenomeProviderChainlink is GenomeProviderPolygon, VRFConsumerBaseV2 {
 
     // Chainlink constants: https://docs.chain.link/docs/vrf-contracts/
     constructor(
-        uint256 _secret_seed_hash,
         address _vrfCoordinator,
         bytes32 _chainLinkKeyHash,
         uint64 _subscriptionId
     )
-        GenomeProviderPolygon(_secret_seed_hash)
         VRFConsumerBaseV2(_vrfCoordinator)
     {
         vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinator);

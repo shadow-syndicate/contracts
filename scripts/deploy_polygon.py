@@ -2,7 +2,9 @@ import os
 import time
 import logging
 import json
+from past.builtins import xrange
 from brownie import *
+from Crypto.Hash import keccak
 LOGGER = logging.getLogger(__name__)
 
 # https://docs.chain.link/docs/vrf-contracts/
@@ -11,7 +13,6 @@ VRF_COORDINATOR="0x6168499c0cFfCaCD319c818142124B7A15E857ab"
 KEY_HASH="0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc"
 subscriptionId=2667
 
-SECRET_HASH='0x1234'
 PUBLISH_SOURCES=True
 
 private_key=os.getenv('DEPLOYER_PRIVATE_KEY')
@@ -64,11 +65,13 @@ def create_config():
     return result
 
 def main():
+    with open('config/dev_seed_hash.csv') as f:
+        devSeeds = [x.strip() for x in f.readlines()]
+
     # config = load_config()
     config = create_config()
 
-    genome_provider = GenomeProviderChainlink.deploy(SECRET_HASH,
-                                                     VRF_COORDINATOR,
+    genome_provider = GenomeProviderChainlink.deploy(VRF_COORDINATOR,
                                                      KEY_HASH,
                                                      subscriptionId,
                                                      {'from':accounts[0]},
@@ -81,3 +84,15 @@ def main():
                                        config[c]["weight"],
                                        config[c]["weightMaxBonus"],
                                        {'from':accounts[0], "required_confs": 0})
+
+    BATCH=500
+    TOTAL=10000
+    i = 0
+    while i < TOTAL:
+        print(i)
+        sub = []
+        for j in xrange(BATCH):
+            sub.append(devSeeds[i + j])
+        print(i, sub)
+        genome_provider.publishDevSeedHashBatch(i + 1, sub, {'from':accounts[0], "required_confs": 0})
+        i += BATCH
