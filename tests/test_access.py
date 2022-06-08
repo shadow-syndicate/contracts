@@ -8,7 +8,7 @@ def test_access_genome_provider(accounts, GenomeProviderPolygon):
     provider = accounts[0].deploy(GenomeProviderPolygon)
 
     with reverts("Access denied"):
-        provider.requestReveal(1, 2, 3, "0x1234", "0xabcd", {'from':accounts[1]})
+        provider.requestReveal(1, 2, 3, 4, "0x1234", "0xabcd", {'from':accounts[1]})
 
     with reverts("Access denied"):
         provider.saveGenome(1, 2, {'from':accounts[1]})
