@@ -65,9 +65,6 @@ def create_config():
     return result
 
 def main():
-    with open('config/dev_seed_hash.csv') as f:
-        devSeeds = [x.strip() for x in f.readlines()]
-
     # config = load_config()
     config = create_config()
 
@@ -84,15 +81,3 @@ def main():
                                        config[c]["weight"],
                                        config[c]["weightMaxBonus"],
                                        {'from':accounts[0], "required_confs": 0})
-
-    BATCH=500
-    TOTAL=10000
-    i = 0
-    while i < TOTAL:
-        print(i)
-        sub = []
-        for j in xrange(BATCH):
-            sub.append(devSeeds[i + j])
-        print(i, sub)
-        genome_provider.publishDevSeedHashBatch(i + 1, sub, {'from':accounts[0], "required_confs": 0})
-        i += BATCH

@@ -5,7 +5,6 @@ pragma solidity ^0.8.10;
 import "../interfaces/IRoachNFT.sol";
 import "./Operators.sol";
 
-
 /// @title Genome generator
 /// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
 /// @dev Should be deployed on cheap network, like Polygon
@@ -99,13 +98,14 @@ contract GenomeProviderPolygon is Operators {
     }
 
     /// @dev Called only after contract is deployed and before genomes are generated
-    function requestReveal(uint tokenId, uint8 traitBonus, uint8 ownerSigV, bytes32 ownerSigR, bytes32 ownerSigS)
+    function requestReveal(uint tokenId, uint8 traitBonus, uint256 devSeedHash,
+            uint8 ownerSigV, bytes32 ownerSigR, bytes32 ownerSigS)
         external onlyOperator
     {
         Roach storage _roach = roach[tokenId];
         require(!_roach.requested, "Can't call twice");
-        require(_roach.devSeedHash != 0, "DevSeed is set");
         _roach.requested = true;
+        _roach.devSeedHash = devSeedHash;
         _roach.traitBonus = traitBonus;
         _requestRandomness(tokenId);
         emit RevealRequest(tokenId, traitBonus, ownerSigV, ownerSigR, ownerSigS);
