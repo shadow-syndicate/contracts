@@ -1,8 +1,8 @@
 {
-  "Background": [1,2,3],
-  "Body": [4,5,6],
-  "Eyes": [7,8,9],
-  "Head": [10,11,12],
-  "Moustache": [13,14],
-  "Mouth": [15,16,17]
+  "Background": [1,2],
+  "Body": [3,4],
+  "Eyes": [5,6],
+  "Head": [7,8],
+  "Antennae": [9,10],
+  "Mouth": [11,12]
 }
