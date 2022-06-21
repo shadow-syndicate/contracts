@@ -93,7 +93,7 @@ contract GenomeProviderPolygon is Operators {
     event DevSeedHash(uint indexed tokenId, uint256 devSeedHash);
     event GenomeSaved(uint indexed tokenId, uint devSeed, uint tokenSeed, bytes genome);
     event RevealVrf(uint indexed tokenId, uint vrfSeed);
-    event RevealRequest(uint indexed tokenId, uint8 traitBonus, uint8 ownerSigV, bytes32 ownerSigR, bytes32 ownerSigS);
+    event RevealRequest(uint indexed tokenId, uint8 traitBonus, string ownerSig);
 
     function _publishDevSeedHash(uint tokenId, uint _devSeedHash) internal {
         Roach storage _roach = roach[tokenId];
@@ -133,8 +133,7 @@ contract GenomeProviderPolygon is Operators {
     }
 
     /// @dev Called only after contract is deployed and before genomes are generated
-    function requestReveal(uint tokenId, uint8 traitBonus, uint256 devSeedHash,
-            uint8 ownerSigV, bytes32 ownerSigR, bytes32 ownerSigS)
+    function requestReveal(uint tokenId, uint8 traitBonus, uint256 devSeedHash, string calldata ownerSig)
         external onlyOperator
     {
         Roach storage _roach = roach[tokenId];
@@ -143,7 +142,7 @@ contract GenomeProviderPolygon is Operators {
         _roach.devSeedHash = devSeedHash;
         _roach.traitBonus = traitBonus;
         _requestRandomness(tokenId);
-        emit RevealRequest(tokenId, traitBonus, ownerSigV, ownerSigR, ownerSigS);
+        emit RevealRequest(tokenId, traitBonus, ownerSig);
     }
 
     /// @dev Stub function for filling random, will be overriden in Chainlink version
