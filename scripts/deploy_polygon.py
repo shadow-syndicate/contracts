@@ -8,10 +8,16 @@ from Crypto.Hash import keccak
 LOGGER = logging.getLogger(__name__)
 
 # https://docs.chain.link/docs/vrf-contracts/
-# v2
-VRF_COORDINATOR="0x6168499c0cFfCaCD319c818142124B7A15E857ab"
-KEY_HASH="0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc"
-subscriptionId=2667
+# Rinkeby v2
+# VRF_COORDINATOR="0x6168499c0cFfCaCD319c818142124B7A15E857ab"
+# KEY_HASH="0xd89b2bf150e3b9e13446986e571fb9cab24b13cea0a43ea20a6049a85cc807cc"
+# subscriptionId=2667
+
+# Mumbai v2
+VRF_COORDINATOR="0x7a1BaC17Ccc5b313516C5E16fb24f7659aA5ebed"
+KEY_HASH="0x4b09e658ed251bcafeebbc69400383d49f344ace09b9576fe248bb02c003fe9f"
+subscriptionId=661
+
 
 PUBLISH_SOURCES=True
 
@@ -65,8 +71,8 @@ def create_config():
     return result
 
 def main():
-    # config = load_config()
-    config = create_config()
+    config = load_config()
+    # config = create_config()
 
     genome_provider = GenomeProviderChainlink.deploy(VRF_COORDINATOR,
                                                      KEY_HASH,

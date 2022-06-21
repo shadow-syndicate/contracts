@@ -106,6 +106,10 @@ export WEB3_INFURA_PROJECT_ID=<infura_project_id>
 export ETHERSCAN_TOKEN=<etherscan_api_token>
 export POLYGONSCAN_TOKEN=<polygoncan_api_token>
 ```
+Add development network
+```
+brownie networks add Polygon polygon-test2 chainid=80001 host=https://polygon-mumbai.g.alchemy.com/v2/<ALCHEMY_API_KEY> explorer=https://api-testnet.polygonscan.com/api
+```
 Deploy command for Mainnet part:
 ```bash
 brownie run ./deploy_eth.py --network=mainnet # prod
@@ -114,7 +118,7 @@ brownie run ./deploy_eth.py --network=rinkeby # testnet
 Deploy command Polygon part:
 ```bash
 brownie run ./deploy_polygon.py --network=polygon-main # prod
-brownie run ./deploy_polygon.py --network=polygon-test # testnet
+brownie run ./deploy_polygon.py --network=polygon-test2 # testnet
 ```
 It is needed to request [testnet LINK](https://faucets.chain.link/rinkeby) to GenomeProviderChainlink contract.
 After link token is transferred to GenomeProviderChainlink contract, you should call
