@@ -74,7 +74,7 @@ function calculateGenome(tokenSeed, traitBonus)
 An upgradeable contract that provides Metadata for Roach tokens.
 Full metadata will be available only after Roach is born.
 
-```
+```javascript
 /// Returns token metadata URI according to IERC721Metadata
 function tokenURI(tokenId)
 ```
