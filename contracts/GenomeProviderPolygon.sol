@@ -6,7 +6,7 @@ import "../interfaces/IRoachNFT.sol";
 import "./Operators.sol";
 
 /// @title Genome generator
-/// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
+/// @author Shadow Syndicate / Andrey Pelipenko
 /// @dev Should be deployed on cheap network, like Polygon
 ///      TokenSeed is generated using formula sha3(tokenId, traitBonus, devSeed, vrfSeed)
 ///      Where:
@@ -26,7 +26,7 @@ import "./Operators.sol";
 ///      as part of the reveal process.
 /// @dev GenomeProviderPolygon is used only for testing because of mocked VRF request.
 ///      GenomeProviderChainlink should be used for production.
-contract GenomeProviderPolygon is Operators {
+abstract contract GenomeProviderPolygon is Operators {
 
     uint constant TRAIT_COUNT = 6;
     uint constant MAX_BONUS = 25;
@@ -40,7 +40,8 @@ contract GenomeProviderPolygon is Operators {
         uint16[] weightMaxBonus;
     }
 
-    mapping(uint => TraitConfig) public traits; // slot -> array of trait weight
+    // slot -> array of trait weight
+    mapping(uint => TraitConfig) public traits;
 
     struct Roach {
         uint256 vrfSeed;
@@ -50,32 +51,16 @@ contract GenomeProviderPolygon is Operators {
         bytes genome;
         uint64 revealTime;
         uint8 traitBonus;
+        // true if VRF was requested
         bool requested;
     }
 
     mapping(uint => Roach) public roach;
 
-    event DevSeedHash(uint indexed tokenId, uint256 devSeedHash);
     event GenomeSaved(uint indexed tokenId, uint devSeed, uint tokenSeed, bytes genome);
     event RevealVrf(uint indexed tokenId, uint vrfSeed);
-    event RevealRequest(uint indexed tokenId, uint8 traitBonus, string ownerSig);
+    event RevealRequest(uint indexed tokenId, uint8 traitBonus, uint256 devSeedHash, string ownerSig);
 
-    function _publishDevSeedHash(uint tokenId, uint _devSeedHash) internal {
-        Roach storage _roach = roach[tokenId];
-        require(_roach.devSeedHash == 0, "Can't call twice");
-        _roach.devSeedHash = _devSeedHash;
-        emit DevSeedHash(tokenId, _devSeedHash);
-    }
-
-    function publishDevSeedHash(uint tokenId, uint _devSeedHash) external onlyOperator {
-        _publishDevSeedHash(tokenId, _devSeedHash);
-    }
-
-    function publishDevSeedHashBatch(uint startTokenId, uint[] calldata _devSeedHashes) external onlyOperator {
-        for (uint i = 0; i < _devSeedHashes.length; i++) {
-            _publishDevSeedHash(startTokenId + i, _devSeedHashes[i]);
-        }
-    }
 
     function isRevealed(uint tokenId) external view returns (bool) {
         return roach[tokenId].revealTime != 0;
@@ -85,19 +70,21 @@ contract GenomeProviderPolygon is Operators {
         return roach[tokenId];
     }
 
-    /// @dev Function is used to check tokenSeed generation after devSeed is published
+    /// @dev generates tokenSeed from known other all seeds
     function calculateTokenSeed(uint tokenId, uint traitBonus, uint devSeed, uint vrfSeed)
         public view returns (uint tokenSeed)
     {
         return uint(keccak256(abi.encodePacked(tokenId, traitBonus, devSeed, vrfSeed)));
     }
 
-    /// @dev Calculates genome for each roach using tokenSeed as seed
-    function calculateGenome(uint256 tokenSeed, uint8 traitBonus) external view returns (bytes memory genome) {
-        genome = _normalizeGenome(tokenSeed, traitBonus);
+    /// @notice Calculates genome for each roach using seed
+    function calculateGenome(uint256 seed, uint8 traitBonus) external view returns (bytes memory genome) {
+        genome = _calculateGenome(seed, traitBonus);
     }
 
-    /// @dev Called only after contract is deployed and before genomes are generated
+    /// @notice called by application to start on-chain part of reveal process
+    /// @dev saves devSeedHash to prove that devSeed was not changed in time
+    /// @dev requests Chainlink VRF after devSeed is generated
     function requestReveal(uint tokenId, uint8 traitBonus, uint256 devSeedHash, string calldata ownerSig)
         external onlyOperator
     {
@@ -107,15 +94,13 @@ contract GenomeProviderPolygon is Operators {
         _roach.devSeedHash = devSeedHash;
         _roach.traitBonus = traitBonus;
         _requestRandomness(tokenId);
-        emit RevealRequest(tokenId, traitBonus, ownerSig);
+        emit RevealRequest(tokenId, traitBonus, _roach.devSeedHash, ownerSig);
     }
 
-    /// @dev Stub function for filling random, will be overriden in Chainlink version
-    function _requestRandomness(uint tokenId) internal virtual {
-        uint256 randomness = uint(keccak256(abi.encodePacked(block.timestamp)));
-        _onRandomnessArrived(tokenId, randomness);
-    }
+    /// @dev Requests Chainlink VFF
+    function _requestRandomness(uint tokenId) internal virtual;
 
+    /// @notice All data for genome generation is known by application when this function is called
     /// @dev Saves Chainlink VRF random value as vrfSeed
     function _onRandomnessArrived(uint tokenId, uint256 _randomness) internal {
         Roach storage _roach = roach[tokenId];
@@ -125,10 +110,15 @@ contract GenomeProviderPolygon is Operators {
         emit RevealVrf(tokenId, _roach.vrfSeed);
     }
 
+    /// @notice Is used to check devSeedHash correctness
     function calculateDevSeedHash(uint _devSeed) public view returns (uint) {
         return uint(keccak256(abi.encodePacked(_devSeed)));
     }
 
+    /// @notice called by application to finish reveal process
+    /// @dev passed devSeed to calculate tokenSeed, that is used for genome generation
+    /// @dev genome is saved for roach
+    /// @dev anytime after this function call anybody can check all data correctness
     function saveGenome(uint tokenId, uint _devSeed) external onlyOperator {
         Roach storage _roach = roach[tokenId];
         require(_roach.devSeed == 0, "Can't call twice");
@@ -136,12 +126,11 @@ contract GenomeProviderPolygon is Operators {
         require(_roach.devSeedHash == calculateDevSeedHash(_devSeed), "devSeed hash correct");
         _roach.devSeed = _devSeed;
         _roach.tokenSeed = calculateTokenSeed(tokenId, _roach.traitBonus, _roach.devSeed, _roach.vrfSeed);
-        _roach.genome = _normalizeGenome(_roach.tokenSeed, _roach.traitBonus);
+        _roach.genome = _calculateGenome(_roach.tokenSeed, _roach.traitBonus);
         emit GenomeSaved(tokenId, _roach.devSeed, _roach.tokenSeed, _roach.genome);
     }
 
-
-    /// @dev Setups genome configuration
+    /// @dev Setups genome configuration. Used only by admins
     function setTraitConfig(
         uint traitIndex,
         uint8[] calldata _slots,
@@ -181,13 +170,13 @@ contract GenomeProviderPolygon is Operators {
         }
     }
 
-    function _normalizeGenome(uint256 _randomness, uint8 _traitBonus) internal view returns (bytes memory) {
+    function _calculateGenome(uint256 _seed, uint8 _traitBonus) internal view returns (bytes memory) {
 
         bytes memory result = new bytes(32);
         result[0] = 0; // version
         for (uint i = 1; i <= TRAIT_COUNT; i++) {
             uint trait;
-            (trait, _randomness) = getWeightedRandom(i, _randomness, _traitBonus);
+            (trait, _seed) = getWeightedRandom(i, _seed, _traitBonus);
             TraitConfig storage config = traits[i];
             for (uint j = 0; j < config.slots.length; j++) {
                 result[config.slots[j]] = bytes1(uint8(config.traitData[trait * config.slots.length + j]));
@@ -197,8 +186,8 @@ contract GenomeProviderPolygon is Operators {
         TraitConfig storage lastConfig = traits[TRAIT_COUNT];
         uint maxSlot = lastConfig.slots[lastConfig.slots.length - 1];
         for (uint i = maxSlot + 1; i < 32; i++) {
-            result[i] = bytes1(uint8(_randomness & 0xFF));
-            _randomness >>= 8;
+            result[i] = bytes1(uint8(_seed & 0xFF));
+            _seed >>= 8;
         }
         return result;
     }

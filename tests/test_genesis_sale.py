@@ -4,12 +4,12 @@ from brownie import Wei, reverts
 
 LOGGER = logging.getLogger(__name__)
 
-def test_sale_happy_path(accounts, GenesisSaleDebug, roach_nft):
+def test_sale_happy_path(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
     stage1time = round(time.time()) - 1
     stage1duration = 60 * 60 * 24
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, stage1duration, 10_000)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, stage1time, stage1duration, 10_000)
     roach_nft.addOperator(genesis_sale)
 
     ALLOWED = 5
@@ -61,10 +61,10 @@ def test_sale_happy_path(accounts, GenesisSaleDebug, roach_nft):
         genesis_sale.mintStage1noSig(1, ALLOWED, PRICE, BONUS, "", {'from':buyer, 'amount': 100})
 
 
-def test_withdraw(accounts, GenesisSaleDebug, roach_nft):
+def test_withdraw(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
     stage1start = round(time.time()) - 10
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1start, 50, 10_000)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, stage1start, 50, 10_000)
     roach_nft.addOperator(genesis_sale)
 
     before = buyer.balance()
@@ -79,11 +79,11 @@ def test_withdraw(accounts, GenesisSaleDebug, roach_nft):
     assert after - before == 1500, "Withdraw all ether"
 
 
-def test_sale_not_started(accounts, GenesisSaleDebug, roach_nft):
+def test_sale_not_started(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
     stage1time = round(time.time()) + 10
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, stage1time, 5, 10_000)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, stage1time, 5, 10_000)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
@@ -98,9 +98,9 @@ def test_sale_not_started(accounts, GenesisSaleDebug, roach_nft):
     assert status[2] == stage1time, "stage1 start time"
 
 
-def test_sale_ended_soldout(accounts, GenesisSaleDebug, roach_nft):
+def test_sale_ended_soldout(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
@@ -117,9 +117,9 @@ def test_sale_ended_soldout(accounts, GenesisSaleDebug, roach_nft):
         genesis_sale.mintStage1noSig(1, 1, 1, 1, "", {'from':buyer, 'amount': 100})
 
 
-def test_buy_left_tokens(accounts, GenesisSaleDebug, roach_nft):
+def test_buy_left_tokens(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
@@ -141,10 +141,10 @@ def test_buy_left_tokens(accounts, GenesisSaleDebug, roach_nft):
     assert balanceBefore - balanceAfter == 500, 'Take all money'
 
 
-def test_not_enough_money(accounts, GenesisSaleDebug, roach_nft):
+def test_not_enough_money(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     # genesis_sale.setWhitelistAddress(buyer, 5, 10, {'from':accounts[0]})
 
@@ -164,10 +164,10 @@ def test_not_enough_money(accounts, GenesisSaleDebug, roach_nft):
     assert status[4] == 5, "left to mint for acount"
 
 
-def test_buy_all_tokens_on_sale(accounts, GenesisSaleDebug, roach_nft):
+def test_buy_all_tokens_on_sale(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     # genesis_sale.setWhitelistAddress(buyer, 5, 10, {'from':accounts[0]})
 
@@ -180,10 +180,10 @@ def test_buy_all_tokens_on_sale(accounts, GenesisSaleDebug, roach_nft):
     assert status[1] == 0, "left to mint"
 
 
-def test_total_supply(accounts, GenesisSaleDebug, roach_nft):
+def test_total_supply(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
     PRICE = 100
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 100)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, round(time.time()) - 10, 50, 100)
     roach_nft.addOperator(genesis_sale)
 
     assert genesis_sale.totalMinted() == 0, "Default supply 100"
@@ -196,17 +196,17 @@ def test_total_supply(accounts, GenesisSaleDebug, roach_nft):
     status = genesis_sale.getSaleStatus(buyer, 10)
     assert status[1] == 96, "left to mint"
 
-def test_set_signer(accounts, GenesisSaleDebug, roach_nft):
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 100)
+def test_set_signer(accounts, GenesisMintDebug, roach_nft):
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, round(time.time()) - 10, 50, 100)
 
     assert genesis_sale.signerAddress() == accounts[0], "default signer"
 
     genesis_sale.setSigner(accounts[2])
     assert genesis_sale.signerAddress() == accounts[2], "new signer"
 
-def test_operator_mint_count_limit(accounts, GenesisSaleDebug, roach_nft):
+def test_operator_mint_count_limit(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
     assert roach_nft.balanceOf(buyer) == 0
 
@@ -221,9 +221,9 @@ def test_operator_mint_count_limit(accounts, GenesisSaleDebug, roach_nft):
     with reverts("Sale is over"):
         genesis_sale.mintOperator(buyer, 1, 0, "", {'from':accounts[0]})
 
-def test_sig(accounts, GenesisSaleDebug, roach_nft):
+def test_sig(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
 
     sig = {"sig":
@@ -250,11 +250,11 @@ def test_sig(accounts, GenesisSaleDebug, roach_nft):
                             sig["sig"]["v"], sig["sig"]["r"], sig["sig"]["s"])
     assert isValid, "sig ok"
 
-def test_whitelist_price(accounts, GenesisSaleDebug, roach_nft):
+def test_whitelist_price(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
     PRICE = 100
     BONUS = 25
-    genesis_sale = accounts[0].deploy(GenesisSaleDebug, roach_nft, round(time.time()) - 10, 50, 3)
+    genesis_sale = accounts[0].deploy(GenesisMintDebug, roach_nft, round(time.time()) - 10, 50, 3)
     roach_nft.addOperator(genesis_sale)
 
     with reverts("Insufficient money"):

@@ -6,7 +6,7 @@ import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC20/IERC20.s
 import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/access/Ownable.sol";
 
 /// @title Helper contract for contract maintainance
-/// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
+/// @author Shadow Syndicate / Andrey Pelipenko
 contract Operators is Ownable {
     mapping (address=>bool) operatorAddress;
 

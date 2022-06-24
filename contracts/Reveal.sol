@@ -6,7 +6,7 @@ import "./Operators.sol";
 import "../interfaces/IRoachNFT.sol";
 
 /// @title Roach NFT genome reveal contract
-/// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
+/// @author Shadow Syndicate / Andrey Pelipenko
 /// @dev Reveal genome using server generated signature
 ///      Genome generation is described in GenomeProviderPolygon.sol
 contract Reveal is Operators {

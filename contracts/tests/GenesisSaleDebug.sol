@@ -2,16 +2,16 @@
 // Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "../GenesisSale.sol";
+import "../GenesisMint.sol";
 
-contract GenesisSaleDebug is GenesisSale {
+contract GenesisMintDebug is GenesisMint {
 
     constructor(
         IRoachNFT _roachContract,
         uint stage1startTime,
         uint stage1durationSeconds,
         uint totalTokensOnSale)
-        GenesisSale(_roachContract, stage1startTime, stage1durationSeconds, totalTokensOnSale)
+        GenesisMint(_roachContract, stage1startTime, stage1durationSeconds, totalTokensOnSale)
     {
     }
 

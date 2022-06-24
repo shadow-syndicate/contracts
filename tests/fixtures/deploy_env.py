@@ -16,8 +16,8 @@ def roach_nft(accounts, RoachNFT, metadata):
 
 
 @pytest.fixture
-def genesis_sale(accounts, GenesisSale, roach_nft):
-    return accounts[0].deploy(GenesisSale, roach_nft, round(time.time()), 60*60*24)
+def genesis_sale(accounts, GenesisMint, roach_nft):
+    return accounts[0].deploy(GenesisMint, roach_nft, round(time.time()), 60*60*24)
 
 @pytest.fixture
 def reveal(accounts, RevealTest, roach_nft):

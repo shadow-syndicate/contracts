@@ -6,7 +6,7 @@ import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/utils/Strings.sol";
 import "../interfaces/IMetadata.sol";
 
 /// @title ERC-721 Non-Fungible Token Standard, metadata extension
-/// @author Shadow Syndicate / Andrey Pelipenko (kindex@kindex.lv)
+/// @author Shadow Syndicate / Andrey Pelipenko
 /// @dev See https://eips.ethereum.org/EIPS/eip-721
 ///      Can be changed in future to support new features
 contract Metadata is IMetadata {

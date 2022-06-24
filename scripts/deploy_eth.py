@@ -21,7 +21,7 @@ def main():
                                 publish_source=PUBLISH_SOURCES)
     roach_contract = RoachNFT.deploy(metadata, {'from':accounts[0], "gas_price": gas_strategy}, publish_source=PUBLISH_SOURCES)
 
-    genesis_sale = GenesisSaleDebug.deploy(roach_contract, round(time.time()), 60*60, 100,
+    genesis_sale = GenesisMintDebug.deploy(roach_contract, round(time.time()), 60*60, 100,
                                            {'from':accounts[0], "gas_price": gas_strategy},
                                             publish_source=PUBLISH_SOURCES)
     print('genesis_sale = {}'.format(genesis_sale))
