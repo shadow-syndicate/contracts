@@ -113,14 +113,14 @@ brownie networks add Polygon polygon-test2 chainid=80001 host=https://polygon-mu
 Deploy command for Mainnet part:
 ```bash
 brownie run ./deploy_eth.py --network=mainnet # prod
-brownie run ./deploy_eth.py --network=rinkeby # testnet
+brownie run ./deploy_eth.py --network=goerli # testnet
 ```
 Deploy command Polygon part:
 ```bash
 brownie run ./deploy_polygon.py --network=polygon-main # prod
 brownie run ./deploy_polygon.py --network=polygon-test2 # testnet
 ```
-It is needed to request [testnet LINK](https://faucets.chain.link/rinkeby) to GenomeProviderChainlink contract.
+It is needed to request [testnet LINK](https://faucets.chain.link/goerli) to GenomeProviderChainlink contract.
 After link token is transferred to GenomeProviderChainlink contract, you should call
 ```javascript
 function requestVrfSeed()
