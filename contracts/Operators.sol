@@ -2,8 +2,8 @@
 // Roach Racing Club: the first strategic p2e game with deflationary mechanisms (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC20/IERC20.sol";
-import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/access/Ownable.sol";
+import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/token/ERC20/IERC20.sol";
+import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/access/Ownable.sol";
 
 /// @title Helper contract for contract maintainance
 /// @author Shadow Syndicate / Andrey Pelipenko

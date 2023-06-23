@@ -67,7 +67,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     }
 
     mapping(uint => Roach) public roach;
-    uint16 public GEN0_RESISTANCE = 10000; // 100%
+    uint16 public constant GEN0_RESISTANCE = 10000; // 100%
     IMetadata public metadataContract;
 
     event Mint(address indexed account, uint indexed tokenId, uint traitBonus, string syndicate);

@@ -3,8 +3,8 @@
 pragma solidity ^0.8.10;
 
 import "./GenomeProviderPolygon.sol";
-import "smartcontractkit/chainlink@1.2.1/contracts/src/v0.8/VRFConsumerBaseV2.sol";
-import "smartcontractkit/chainlink@1.2.1/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import "smartcontractkit/chainlink@2.2.0/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
+import "smartcontractkit/chainlink@2.2.0/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
 /*
                                                                    ..::--------::..

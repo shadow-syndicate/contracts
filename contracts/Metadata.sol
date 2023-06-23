@@ -2,7 +2,7 @@
 // Roach Racing Club: the first strategic p2e game with deflationary mechanisms (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/utils/Strings.sol";
+import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/utils/Strings.sol";
 import "../interfaces/IMetadata.sol";
 
 /// @title ERC-721 Non-Fungible Token Standard, metadata extension

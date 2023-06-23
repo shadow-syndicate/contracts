@@ -4,8 +4,8 @@
 
 pragma solidity ^0.8.10;
 
-import 'OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/IERC721.sol';
-import 'OpenZeppelin/openzeppelin-contracts@4.4.0/contracts/token/ERC721/extensions/IERC721Metadata.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/token/ERC721/IERC721.sol';
+import 'OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/token/ERC721/extensions/IERC721Metadata.sol';
 
 /**
  * @dev Interface of an ERC721A compliant contract.
