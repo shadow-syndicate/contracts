@@ -12,9 +12,15 @@ def main():
     print('Deployer account= {}'.format(accounts[0]))
 
     roach = '0x69ED5E60ee3B91408D578A3527b17Df1372d96B6'
-    rrc = '0x74D19B44b651e0b5395B29A2f8fed0D142eCF980'
-    mutagen = '0xB9EB8dbB443eF0f7d52bDda018d7AC00ACDB3709'
+    rrc = '0xE38c7E6f6110493854aC76Ad9cDEb62d2456eCaf'
+    mutagen = '0x95681034dc5D4a2BAbcAA07c7d1c3Dd838B2Dc60'
 
     race = Race.deploy(roach, rrc, mutagen,
                                {'from':accounts[0]},
                                publish_source=PUBLISH_SOURCES)
+
+    rrcToken = RRC.at(rrc)
+    rrcToken.addOperator(race, {'from':accounts[0], "required_confs": 0})
+
+    mutagenToken = RRC.at(mutagen)
+    mutagenToken.addOperator(race, {'from':accounts[0], "required_confs": 0})

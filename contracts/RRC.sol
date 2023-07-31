@@ -14,14 +14,10 @@ contract RRC is ERC20, Operators {
     {
     }
 
-    function mint(address to, uint256 amount) external onlyOwner {
+    function mint(address to, uint256 amount) external onlyOperator {
         require(amount <= MAX_SUPPLY, "Max supply amount exceed!");
         require(totalSupply() + amount <= MAX_SUPPLY, "Max supply amount exceed!");
         _mint(to, amount);
-    }
-
-    function burn(address to, uint256 amount) external onlyOwner {
-        _burn(to, amount);
     }
 
 }

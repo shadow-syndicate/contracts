@@ -12,12 +12,8 @@ contract Mutagen is ERC20, Operators {
     {
     }
 
-    function mint(address to, uint256 amount) external onlyOwner {
+    function mint(address to, uint256 amount) external onlyOperator {
         _mint(to, amount);
-    }
-
-    function burn(address to, uint256 amount) external onlyOwner {
-        _burn(to, amount);
     }
 
 }
