@@ -6,11 +6,11 @@ import "./Operators.sol";
 
 contract Incubator is Operators {
 
-    event Created(address account, uint index);
-    event Initiated(address account, uint index);
-    event Egg(address account, uint index);
-    event Available(address account, uint index);
-    event Roll(address account, uint index);
+    event Created(address user, uint index);
+    event Initiated(address user, uint index, uint parent1, uint parent2);
+    event Egg(address user, uint index);
+    event Available(address user, uint index);
+    event Roll(address user, uint index);
 
     function buySlot() external {
         // emit Created(msg.sender, index);
@@ -20,7 +20,7 @@ contract Incubator is Operators {
         // emit Created(msg.sender, index);
     }
 
-    function init(uint index, uint roachId1, uint roachId2) external {
+    function init(uint index, int parent1, int parent2) external {
         emit Initiated(msg.sender, index);
     }
 
