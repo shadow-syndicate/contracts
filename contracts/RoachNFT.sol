@@ -118,6 +118,23 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         owner = ownerOf(roachId);
     }
 
+    /// @notice Returns contract level metadata for roach
+    /// @return genome       Array of genes in secret format
+    /// @return generation   Gen0, Gen1, etc
+    /// @return resistance   Resistance percentage (1234 = 12.34%)
+    function getRoachShort(uint roachId) external view
+        returns (
+            bytes memory genome,
+            uint40 generation,
+            uint16 resistance)
+    {
+        require(_exists(roachId), "query for nonexistent token");
+        Roach storage r = roach[roachId];
+        genome = r.genome;
+        generation = r.generation;
+        resistance = r.generation == 0 ? GEN0_RESISTANCE : r.resistance;
+    }
+
     function getRoachBatch(uint[] calldata roachIds) external view
         returns (
             Roach[] memory roachData,

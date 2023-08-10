@@ -36,6 +36,14 @@ interface IRoachNFT {
     /// @notice Mints new token with autoincremented index and stores traitBonus/syndicate for reveal
     function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external;
 
+    function mint(
+        address to,
+        bytes calldata genome,
+        uint40[2] calldata parents,
+        uint40 generation,
+        uint16 resistance
+    ) external;
+
     /// @notice lastRoachId doesn't equap totalSupply because some token will be burned
     ///         in using Run or Die mechanic
     function lastRoachId() external view returns (uint);
@@ -46,4 +54,14 @@ interface IRoachNFT {
     function revealOperator(uint tokenId, bytes calldata genome) external;
 
     function ownerOf(uint256 tokenId) external view returns (address);
+
+    /// @notice Returns contract level metadata for roach
+    /// @return genome       Array of genes in secret format
+    /// @return generation   Gen0, Gen1, etc
+    /// @return resistance   Resistance percentage (1234 = 12.34%)
+    function getRoachShort(uint roachId) external view
+        returns (
+            bytes memory genome,
+            uint40 generation,
+            uint16 resistance);
 }
