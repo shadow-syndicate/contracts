@@ -9,7 +9,6 @@ import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/token/ERC20/IERC20.s
 import "./Config.sol";
 
 contract Incubator is Operators {
-    uint constant REVEAL_COOLDOWN = 100;
 
     enum IncubatorState {
         AVAILABLE,
@@ -34,11 +33,11 @@ contract Incubator is Operators {
     Config public config;
 
 
-    event Created(address user, uint index);
-    event Initiated(address user, uint index, uint parent0, uint parent1, uint seedBlockNumber);
-    event Egg(address user, uint index, uint finishTime);
-    event Available(address user, uint index);
-    event Roll(address user, uint index, uint tryNumber, uint seedBlockNumber);
+    event Created(address indexed user, uint index);
+    event Initiated(address indexed user, uint index, uint parent0, uint parent1, uint seedBlockNumber);
+    event Egg(address indexed user, uint index, uint finishTime);
+    event Available(address indexed user, uint index);
+    event Roll(address indexed user, uint index, uint tryNumber, uint seedBlockNumber);
 
     constructor (IRoachNFT _roachNtf, IGeneMixer _geneMixer, Config _config, IERC20 _mutagenToken, IERC20 _rrcToken) {
         roachNtf = _roachNtf;
@@ -98,7 +97,7 @@ contract Incubator is Operators {
         _takePayments(user, config.getStartPrice(slot.parents[0], slot.parents[0]));
 
         slot.state = IncubatorState.EGG;
-        slot.finishTime = uint40(block.timestamp + REVEAL_COOLDOWN);
+        slot.finishTime = uint40(block.timestamp + config.getRevealCooldown());
 
         emit Egg(msg.sender, index, slot.finishTime);
     }
@@ -117,7 +116,7 @@ contract Incubator is Operators {
         emit Roll( user, index, slot.rollCount, slot.seedBlockNumber);
     }
 
-    function _getSlot(address user, uint index, IncubatorState state) private returns (IncubatorSlot storage) {
+    function _getSlot(address user, uint index, IncubatorState state) private view returns (IncubatorSlot storage) {
         IncubatorSlot[] storage slots = incubators[user];
         require(index < slots.length, 'Wrong slot');
         IncubatorSlot storage slot = slots[index];
@@ -160,7 +159,7 @@ contract Incubator is Operators {
     function reveal(uint index) external {
         address user = msg.sender;
         IncubatorSlot storage slot = _getSlot(user, index, IncubatorState.EGG);
-        require(block.timestamp <= slot.finishTime, 'Cooldown in progress');
+        require(slot.finishTime <= block.timestamp, 'Cooldown in progress');
 
         _reveal(slot, user, index);
     }

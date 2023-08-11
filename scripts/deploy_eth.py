@@ -21,14 +21,32 @@ def main():
                                 publish_source=PUBLISH_SOURCES)
     roach_contract = RoachNFT.deploy(metadata, {'from':accounts[0], "gas_price": gas_strategy}, publish_source=PUBLISH_SOURCES)
 
-    genesis_sale = GenesisMintDebug.deploy(roach_contract, round(time.time()), 60*60, 100,
-                                           {'from':accounts[0], "gas_price": gas_strategy},
-                                            publish_source=PUBLISH_SOURCES)
-    print('genesis_sale = {}'.format(genesis_sale))
-    roach_contract.addOperator(genesis_sale, {'from':accounts[0], "required_confs": 0, "gas_price": gas_strategy})
-    genesis_sale.addOperator("0x549E82b2e4831E3d2bCD6dA4a6eBbBf43692D45b", {'from':accounts[0], "required_confs": 0, "gas_price": gas_strategy})
+    # genesis_sale = GenesisMintDebug.deploy(roach_contract, round(time.time()), 60*60, 100,
+    #                                        {'from':accounts[0], "gas_price": gas_strategy},
+    #                                         publish_source=PUBLISH_SOURCES)
+    # print('genesis_sale = {}'.format(genesis_sale))
+    # roach_contract.addOperator(genesis_sale, {'from':accounts[0], "required_confs": 0, "gas_price": gas_strategy})
+    # genesis_sale.addOperator("0x549E82b2e4831E3d2bCD6dA4a6eBbBf43692D45b", {'from':accounts[0], "required_confs": 0, "gas_price": gas_strategy})
 
     # reveal_contract = Reveal.deploy(roach_contract, {'from':accounts[0]},
     #                                  publish_source=PUBLISH_SOURCES
     #                                  )
     # roach_contract.addOperator(reveal_contract, {'from':accounts[0], "required_confs": 0})
+
+    rrcToken = RRC.deploy({'from':accounts[0]}, publish_source=PUBLISH_SOURCES)
+    mutagenToken = Mutagen.deploy({'from':accounts[0]}, publish_source=PUBLISH_SOURCES)
+
+    race = Race.deploy(roach_contract, rrcToken, mutagenToken,
+                       {'from':accounts[0]},
+                       publish_source=PUBLISH_SOURCES)
+
+    rrcToken.addOperator(race, {'from':accounts[0], "required_confs": 0})
+    mutagenToken.addOperator(race, {'from':accounts[0], "required_confs": 0})
+
+    config = Config.deploy({'from':accounts[0]}, publish_source=PUBLISH_SOURCES)
+    geneMixer = GeneMixer.deploy(roach_contract, {'from':accounts[0]}, publish_source=PUBLISH_SOURCES)
+
+    incubator = Incubator.deploy(roach_contract, geneMixer, config, mutagenToken, rrcToken,
+                                 {'from':accounts[0]}, publish_source=PUBLISH_SOURCES)
+
+    roach_contract.addOperator(incubator, {'from':accounts[0], "required_confs": 0})

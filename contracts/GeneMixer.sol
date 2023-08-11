@@ -11,11 +11,11 @@ contract GeneMixer is Operators {
         roachNtf = _roachNtf;
     }
 
-    function calculateGenome(uint40 parent0, uint40 parent1, uint seed) external returns (
+    function calculateGenome(uint40 parent0, uint40 parent1, uint seed) external view returns (
         bytes memory genome,
         uint40 generation,
         uint16 resistance
-    ){
+    ) {
         bytes memory genome0;
         uint40 generation0;
         uint16 resistance0;
@@ -31,7 +31,7 @@ contract GeneMixer is Operators {
         resistance = (resistance0 + resistance1)/2;
     }
 
-    function canBreed(uint40 parent0, uint40 parent1) external returns (bool) {
+    function canBreed(uint40 parent0, uint40 parent1) external view returns (bool) {
         return parent0 != parent1;
     }
 
