@@ -37,7 +37,7 @@ contract Incubator is Operators {
     event Initiated(address indexed user, uint index, uint parent0, uint parent1, uint seedBlockNumber);
     event Egg(address indexed user, uint index, uint finishTime);
     event Available(address indexed user, uint index);
-    event Roll(address indexed user, uint index, uint tryNumber, uint seedBlockNumber);
+    event Roll(address indexed user, uint index, uint rollNumber, uint seedBlockNumber);
 
     constructor (IRoachNFT _roachNtf, IGeneMixer _geneMixer, Config _config, IERC20 _mutagenToken, IERC20 _rrcToken) {
         roachNtf = _roachNtf;
@@ -49,7 +49,8 @@ contract Incubator is Operators {
 
     function buySlot() external {
         address user = msg.sender;
-        _takePayments(user, config.getBuySlotPrice(user));
+        (address tokenAddress, uint tokenValue) = config.getBuySlotPrice(user);
+        _takePayment(user, tokenAddress, tokenValue);
         uint index = _addSlot(user);
         emit Created(user, index);
     }
@@ -76,10 +77,11 @@ contract Incubator is Operators {
         require(config.isGoodBreedCount(roachBreedCount[parent0]), 'parent0 breed count limit');
         require(config.isGoodBreedCount(roachBreedCount[parent1]), 'parent0 breed count limit');
 
-        _takePayments(user, config.getInitPrice(parent0, parent1));
+        (address tokenAddress, uint tokenValue) = config.getInitPrice(parent0, parent1);
+        _takePayment(user, tokenAddress, tokenValue);
+
         roachBreedCount[parent0]++;
         roachBreedCount[parent1]++;
-        // TODO: decrease breed count
 
         slot.state = IncubatorState.INITIATED;
         slot.parents[0] = parent0;
@@ -94,7 +96,8 @@ contract Incubator is Operators {
         address user = msg.sender;
         IncubatorSlot storage slot = _getSlot(user, index, IncubatorState.INITIATED);
 
-        _takePayments(user, config.getStartPrice(slot.parents[0], slot.parents[0]));
+        (address tokenAddress, uint tokenValue) = config.getStartPrice(slot.parents[0], slot.parents[0]);
+        _takePayment(user, tokenAddress, tokenValue);
 
         slot.state = IncubatorState.EGG;
         slot.finishTime = uint40(block.timestamp + config.getRevealCooldown());
@@ -108,12 +111,21 @@ contract Incubator is Operators {
 
         require(slot.seedBlockNumber != block.number, 'Wait for new block');
 
-        _takePayments(user, config.getRollPrice(slot.rollCount + 1));
+        (address tokenAddress, uint tokenValue) = config.getRollPrice(slot.rollCount + 1);
+        _takePayment(user, tokenAddress, tokenValue);
 
         slot.rollCount++;
         slot.seedBlockNumber = block.number;
 
-        emit Roll( user, index, slot.rollCount, slot.seedBlockNumber);
+        uint probability = config.getBreedSuccessProbability(slot.rollCount);
+        // TODO: good random
+        uint randomValue = uint(keccak256(abi.encodePacked(blockhash(block.number - 1))));
+        uint dice = randomValue % 100;
+        if (dice < probability) {
+            emit Roll(user, index, slot.rollCount, slot.seedBlockNumber);
+        } else {
+            _resetSlot(slot, user, index);
+        }
     }
 
     function _getSlot(address user, uint index, IncubatorState state) private view returns (IncubatorSlot storage) {
@@ -146,7 +158,7 @@ contract Incubator is Operators {
         _resetSlot(slot, user, index);
     }
 
-    function getExpectedGenome(uint40 parent0, uint40 parent1, uint seedBlockNumber) public returns (
+    function getExpectedGenome(uint40 parent0, uint40 parent1, uint seedBlockNumber) public view returns (
         bytes memory genome,
         uint40 generation,
         uint16 resistance
@@ -168,19 +180,16 @@ contract Incubator is Operators {
         address user = msg.sender;
         IncubatorSlot storage slot = _getSlot(user, index, IncubatorState.EGG);
         if (block.timestamp < slot.finishTime) {
-            _takePayments(user, config.getSpeedupPrice(slot.finishTime - block.timestamp));
+            (address tokenAddress, uint tokenValue) = config.getSpeedupPrice(slot.finishTime - block.timestamp);
+            _takePayment(user, tokenAddress, tokenValue);
         }
         _reveal(slot, user, index);
     }
 
-    function _takePayments(address user, uint[2] memory tokenValues) internal {
-        _takePayment(user, mutagenToken, tokenValues[0]);
-        _takePayment(user, rrcToken, tokenValues[1]);
-    }
 
-    function _takePayment(address user, IERC20 priceToken, uint priceValue) internal {
+    function _takePayment(address user, address priceToken, uint priceValue) internal {
         if (priceValue > 0) {
-            priceToken.transferFrom(
+            IERC20(priceToken).transferFrom(
                 user,
                 address(this),
                 priceValue
