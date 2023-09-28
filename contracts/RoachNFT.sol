@@ -73,7 +73,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     event Mint(address indexed account, uint indexed tokenId, uint traitBonus, string syndicate);
     event Reveal(address indexed owner, uint indexed tokenId);
     event GenomeChanged(uint indexed tokenId, bytes genome);
-    event Birth(uint indexed tokenId, bytes genome, uint40[2] parents, uint40 generation, uint16 resistance);
+    event Birth(address indexed owner, uint indexed tokenId, bytes genome, uint40[2] parents, uint40 generation, uint16 resistance);
 
     event MetadataContractChanged(IMetadata metadataContract);
 
@@ -181,7 +181,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         uint16 resistance
     ) external onlyOperator {
         roach[_currentIndex] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance);
-        emit Birth(_currentIndex, genome, parents, generation, resistance);
+        emit Birth(to, _currentIndex, genome, parents, generation, resistance);
         _mint(to, 1);
     }
 
