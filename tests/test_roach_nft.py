@@ -88,8 +88,8 @@ def test_metadata(accounts, roach_nft):
     roach_nft.mintGen0(accounts[3], 1, 25, "syndicate")
 
     data = roach_nft.getRoach(1)
-    assert data[6] == "Roach 1", "getRoach.name"
-    assert data[7] == accounts[1], "getRoach.owner"
+    assert data[7] == "Roach 1", "getRoach.name"
+    assert data[8] == accounts[1], "getRoach.owner"
 
     data = roach_nft.getRoachBatch([1, 3, 2])
     assert data[1][0] == "Roach 1", "getRoach.name"

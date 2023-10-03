@@ -64,16 +64,19 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         uint40 generation;
         // Resistance percentage (1234 = 12.34%)
         uint16 resistance;
+        uint16 breedCount;
     }
 
     mapping(uint => Roach) public roach;
     uint16 public constant GEN0_RESISTANCE = 10000; // 100%
+    uint16 public MAX_BREED_COUNT = 7;
     IMetadata public metadataContract;
 
     event Mint(address indexed account, uint indexed tokenId, uint traitBonus, string syndicate);
     event Reveal(address indexed owner, uint indexed tokenId);
     event GenomeChanged(uint indexed tokenId, bytes genome);
     event Birth(address indexed owner, uint indexed tokenId, bytes genome, uint40[2] parents, uint40 generation, uint16 resistance);
+    event BreedCountChanged(uint indexed tokenId, uint breedCount);
 
     event MetadataContractChanged(IMetadata metadataContract);
 
@@ -95,6 +98,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     /// @return revealTime   UNIX time when egg was revealed to roach
     /// @return generation   Gen0, Gen1, etc
     /// @return resistance   Resistance percentage (1234 = 12.34%)
+    /// @return breedCount   number of breed tries
     /// @return name         Roach name
     function getRoach(uint roachId) external view
         returns (
@@ -104,6 +108,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
             uint40 revealTime,
             uint40 generation,
             uint16 resistance,
+            uint16 breedCount,
             string memory name,
             address owner)
     {
@@ -115,8 +120,15 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         revealTime = r.revealTime;
         generation = r.generation;
         resistance = r.generation == 0 ? GEN0_RESISTANCE : r.resistance;
+        breedCount = r.breedCount;
         name = metadataContract.getName(roachId);
         owner = ownerOf(roachId);
+    }
+
+    function getBreedCount(uint roachId) external view returns (uint16 breedCount) {
+        require(_exists(roachId), "query for nonexistent token");
+        Roach storage r = roach[roachId];
+        breedCount = r.breedCount;
     }
 
     /// @notice Returns contract level metadata for roach
@@ -180,7 +192,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         uint40 generation,
         uint16 resistance
     ) external onlyOperator {
-        roach[_currentIndex] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance);
+        roach[_currentIndex] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance, 0);
         emit Birth(to, _currentIndex, genome, parents, generation, resistance);
         _mint(to, 1);
     }
@@ -210,6 +222,16 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
 
     function setGenome(uint tokenId, bytes calldata genome) external onlyOperator {
         _setGenome(tokenId, genome);
+    }
+
+    function incBreedCount(uint tokenId) external onlyOperator {
+        roach[tokenId].breedCount++;
+        require(roach[tokenId].breedCount <= MAX_BREED_COUNT, "Breed count limit");
+        emit BreedCountChanged(tokenId, roach[tokenId].breedCount);
+    }
+
+    function setMaxBreedCount(uint16 newMaxBreedCount) external onlyOwner {
+        MAX_BREED_COUNT = newMaxBreedCount;
     }
 
     function _setGenome(uint tokenId, bytes calldata genome) internal {
@@ -250,6 +272,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
             roach[tokenId].resistance = GEN0_RESISTANCE;
         }
         emit Reveal(ownerOf(tokenId), tokenId);
+        emit Birth(ownerOf(tokenId), tokenId, genome, roach[tokenId].parents, roach[tokenId].generation, roach[tokenId].resistance);
         _setGenome(tokenId, genome);
     }
 

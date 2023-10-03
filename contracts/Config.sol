@@ -51,7 +51,8 @@ contract Config is Operators {
         returns (address tokenAddress, uint tokenValue)
     {
         tokenAddress = address(rrcToken);
-        tokenValue = 1 ether * leftTimeSeconds / 60 / 60 / 24; // 1 RRC per day
+        uint leftMin = (leftTimeSeconds + 60 - 1) / 60;
+        tokenValue = 1 ether * leftMin / 60 / 24; // 1 RRC per day, increase every hour
     }
 
     function isGoodBreedCount(uint breedCount) external view
@@ -63,7 +64,7 @@ contract Config is Operators {
     function getRevealCooldown() external pure
         returns (uint)
     {
-        return 60;
+        return 5*60;
     }
 
     function getBreedSuccessProbability(uint rollNumber) external pure

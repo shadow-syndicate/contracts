@@ -21,10 +21,10 @@ contract Incubator is Operators {
         uint40[2] parents;
         uint16 rollCount;
         uint40 finishTime;
-        uint seedBlockNumber;
+        uint40 seedBlockNumber;
+        uint40 initCount;
     }
     mapping(address => IncubatorSlot[]) public incubators;
-    mapping(uint => uint) public roachBreedCount;
 
     IRoachNFT public roachNtf;
     IGeneMixer public geneMixer;
@@ -64,7 +64,7 @@ contract Incubator is Operators {
 
     function _addSlot(address user) private returns (uint slotIndex) {
         IncubatorSlot[] storage slots = incubators[user];
-        slots.push(IncubatorSlot(IncubatorState.AVAILABLE, [uint40(0), uint40(0)], 0, 0, 0));
+        slots.push(IncubatorSlot(IncubatorState.AVAILABLE, [uint40(0), uint40(0)], 0, 0, 0, 0));
         slotIndex = slots.length - 1;
     }
 
@@ -74,20 +74,21 @@ contract Incubator is Operators {
         require(roachNtf.ownerOf(parent0) == user, 'wrong parent1 owner');
         require(roachNtf.ownerOf(parent1) == user, 'wrong parent1 owner');
         require(geneMixer.canBreed(parent0, parent1), 'non compatible parents');
-        require(config.isGoodBreedCount(roachBreedCount[parent0]), 'parent0 breed count limit');
-        require(config.isGoodBreedCount(roachBreedCount[parent1]), 'parent0 breed count limit');
+        require(config.isGoodBreedCount(roachNtf.getBreedCount(parent0)), 'parent0 breed count limit');
+        require(config.isGoodBreedCount(roachNtf.getBreedCount(parent1)), 'parent1 breed count limit');
 
         (address tokenAddress, uint tokenValue) = config.getInitPrice(parent0, parent1);
         _takePayment(user, tokenAddress, tokenValue);
 
-        roachBreedCount[parent0]++;
-        roachBreedCount[parent1]++;
+        roachNtf.incBreedCount(parent0);
+        roachNtf.incBreedCount(parent1);
 
         slot.state = IncubatorState.INITIATED;
         slot.parents[0] = parent0;
         slot.parents[1] = parent1;
         slot.rollCount = 0;
-        slot.seedBlockNumber = block.number;
+        slot.initCount++;
+        slot.seedBlockNumber = uint40(block.number);
 
         emit Initiated(msg.sender, index, slot.parents[0], slot.parents[1], slot.seedBlockNumber);
     }
@@ -105,7 +106,13 @@ contract Incubator is Operators {
         emit Egg(msg.sender, index, slot.finishTime);
     }
 
+    function _isCalledFromContract() view internal returns (bool) {
+        return tx.origin != msg.sender;
+    }
+
     function roll(uint index) external {
+        require(!_isCalledFromContract(), "Called from another contract");
+
         address user = msg.sender;
         IncubatorSlot storage slot = _getSlot(user, index, IncubatorState.INITIATED);
 
@@ -115,7 +122,7 @@ contract Incubator is Operators {
         _takePayment(user, tokenAddress, tokenValue);
 
         slot.rollCount++;
-        slot.seedBlockNumber = block.number;
+        slot.seedBlockNumber = uint40(block.number);
 
         uint probability = config.getBreedSuccessProbability(slot.rollCount);
         // TODO: good random
