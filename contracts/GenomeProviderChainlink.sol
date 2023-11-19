@@ -2,10 +2,6 @@
 // Roach Racing Club: the first strategic p2e game with deflationary mechanisms (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "./GenomeProviderPolygon.sol";
-import "smartcontractkit/chainlink@2.2.0/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
-import "smartcontractkit/chainlink@2.2.0/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
-
 /*
                                                                    ..::--------::..
                                                                .:--------------------::
@@ -43,6 +39,10 @@ import "smartcontractkit/chainlink@2.2.0/contracts/src/v0.8/interfaces/VRFCoordi
 ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚══╝╚══╝     ╚══════╝   ╚═╝   ╚═╝  ╚═══╝╚═════╝ ╚═╝ ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝    ╚═╝╚═╝  ╚═══╝ ╚═════╝╚═╝
 
 */
+
+import "./GenomeProviderPolygon.sol";
+import "smartcontractkit/chainlink@2.7.0/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
+import "smartcontractkit/chainlink@2.7.0/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 
 /// @title Genome generator
 /// @author Shadow Syndicate / Andrey Pelipenko
