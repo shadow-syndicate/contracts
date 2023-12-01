@@ -65,6 +65,29 @@ interface IRoachNFT {
             uint40 generation,
             uint16 resistance);
 
+    function getRoach(uint roachId) external view
+    returns (
+        bytes memory genome,
+        uint40[2] memory parents,
+        uint40 creationTime,
+        uint40 revealTime,
+        uint40 generation,
+        uint16 resistance,
+        uint16 breedCount,
+        string memory name,
+        address owner);
+
     function getBreedCount(uint roachId) external view returns (uint16 breedCount);
     function incBreedCount(uint tokenId) external;
+
+    function revive(
+        address to,
+        uint tokenId,
+        bytes calldata genome,
+        uint40[2] calldata parents,
+        uint40 generation,
+        uint16 resistance
+    ) external returns (bool success);
+
+    function burnFrom(uint tokenId) external;
 }

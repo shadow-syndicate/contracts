@@ -209,6 +209,24 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         }
     }
 
+    /// @notice Cancels burn for bridge
+    /// @dev NFT Bridge burns token when transferring to another chain.
+    /// @dev When NFT Bridge returns token back to current contract revive is called.
+    /// @dev Can be called only by authorized operator (bridge contract)
+    function revive(
+        address to,
+        uint tokenId,
+        bytes calldata genome,
+        uint40[2] calldata parents,
+        uint40 generation,
+        uint16 resistance
+    ) external onlyOperator {
+        require(_burned(tokenId), 'not burned');
+        roach[tokenId] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance, 0);
+        emit Birth(to, tokenId, genome, parents, generation, resistance);
+        _revive(to, tokenId);
+    }
+
     /// @notice Owner can burn his token
     function burn(uint tokenId) external {
         _burn(tokenId, true);

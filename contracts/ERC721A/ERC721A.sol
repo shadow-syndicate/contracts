@@ -293,6 +293,13 @@ contract ERC721A is Context, ERC165, IERC721A {
     }
 
     /**
+     * @dev Returns whether `tokenId` was burned before.
+     */
+    function _burned(uint256 tokenId) internal view returns (bool) {
+        return _startTokenId() <= tokenId && tokenId < _currentIndex && _ownerships[tokenId].burned;
+    }
+
+    /**
      * @dev Equivalent to `_safeMint(to, quantity, '')`.
      */
     function _safeMint(address to, uint256 quantity) internal {
@@ -521,6 +528,30 @@ contract ERC721A is Context, ERC165, IERC721A {
         // Overflow not possible, as _burnCounter cannot be exceed _currentIndex times.
         unchecked {
             _burnCounter++;
+        }
+    }
+
+    function _revive(address to, uint256 tokenId) internal virtual {
+        if (to == address(0)) revert MintToZeroAddress();
+
+        _beforeTokenTransfers(address(0), to, tokenId, 1);
+
+        // Overflows are incredibly unrealistic.
+        // balance or numberMinted overflow if current value of either + quantity > 1.8e19 (2**64) - 1
+        // updatedIndex overflows if _currentIndex + quantity > 1.2e77 (2**256) - 1
+        unchecked {
+            _addressData[to].balance += 1;
+        }
+//            _addressData[to].numberBurned -= 1;
+
+        _ownerships[tokenId].addr = to;
+
+        emit Transfer(address(0), to, tokenId);
+        _afterTokenTransfers(address(0), to, tokenId, 1);
+
+        // Overflow not possible, as _burnCounter cannot be exceed _currentIndex times.
+        unchecked {
+            _burnCounter--;
         }
     }
 
