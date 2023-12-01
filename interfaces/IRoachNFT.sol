@@ -33,8 +33,8 @@ pragma solidity ^0.8.10;
 /// @title Roach Racing Club NFT registry interface
 interface IRoachNFT {
 
-    /// @notice Mints new token with autoincremented index and stores traitBonus/syndicate for reveal
-    function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external;
+    /// @notice Mints new token with autoincremented index
+    function mintGen0(address to, uint count) external;
 
     function mint(
         address to,
@@ -82,12 +82,8 @@ interface IRoachNFT {
 
     function revive(
         address to,
-        uint tokenId,
-        bytes calldata genome,
-        uint40[2] calldata parents,
-        uint40 generation,
-        uint16 resistance
-    ) external returns (bool success);
+        uint tokenId
+    ) external;
 
     function burnFrom(uint tokenId) external;
 }

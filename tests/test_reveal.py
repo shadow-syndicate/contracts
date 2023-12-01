@@ -13,7 +13,7 @@ def test_reveal_happy_path(accounts, chain, GenesisMintDebug, roach_nft, reveal)
 
     assert roach_nft.balanceOf(buyer) == 0
 
-    genesis_sale.mintStage1noSig(5, 5, 0, 0, "", {'from':buyer, 'amount': 5})
+    genesis_sale.mintStage1noSig(5, 5, 0, {'from':buyer, 'amount': 5})
 
     assert roach_nft.balanceOf(buyer) == 5, "balance after mint is 5"
 

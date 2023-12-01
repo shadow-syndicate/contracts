@@ -117,8 +117,7 @@ contract RoachNftBridge is CCIPReceiver, Operators {
             uint40 generation,
             uint16 resistance
         ) = abi.decode(message.data, (address, uint, bytes, uint40[2], uint40, uint16));
-        (bool success) = nftContract.revive(owner, tokenId, genome, parents, generation, resistance);
-        require(success);
+        nftContract.revive(owner, tokenId);
         emit Receive(tokenId, message.messageId);
     }
 }

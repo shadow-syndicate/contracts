@@ -18,13 +18,11 @@ contract GenesisMintDebug is GenesisMint {
     function mintStage1noSig(
         uint desiredCount,
         uint limitForAccount,
-        uint price,
-        uint8 traitBonus,
-        string calldata syndicate
+        uint price
     )
         external payable
     {
-        _mint(msg.sender, desiredCount, limitForAccount, price, traitBonus, syndicate);
+        _mint(msg.sender, desiredCount, limitForAccount, price);
     }
 
     function setStage0(uint duration) external onlyOperator {

@@ -36,20 +36,16 @@ def test_721a(accounts, roach_nft):
     with reverts(""): # TODO: correct error message
         r = roach_nft.ownerOf(0)
 
-    tx = roach_nft.mintGen0(accounts[1], 2, 25, "shadow")
+    tx = roach_nft.mintGen0(accounts[1], 2)
 
     mint_event = tx.events[2]
     assert mint_event.name == "Mint", "Mint event"
     assert mint_event['tokenId'] == 1, "Mint event"
-    assert mint_event['syndicate'] == 'shadow', "Mint event"
-    assert mint_event['traitBonus'] == 25, "Mint event"
     assert mint_event['account'] == accounts[1], "Mint event"
 
     mint_event = tx.events[3]
     assert mint_event.name == "Mint", "Mint event"
     assert mint_event['tokenId'] == 2, "Mint event"
-    assert mint_event['syndicate'] == 'shadow', "Mint event"
-    assert mint_event['traitBonus'] == 25, "Mint event"
     assert mint_event['account'] == accounts[1], "Mint event"
 
     assert roach_nft.ownerOf(1) == accounts[1]
@@ -67,9 +63,9 @@ def test_721a(accounts, roach_nft):
         r = roach_nft.ownerOf(10)
 
 def test_enum(accounts, roach_nft):
-    roach_nft.mintGen0(accounts[1], 3, 25, "syndicate")
-    roach_nft.mintGen0(accounts[2], 1, 0, "")
-    roach_nft.mintGen0(accounts[1], 2, 25, "syndicate")
+    roach_nft.mintGen0(accounts[1], 3)
+    roach_nft.mintGen0(accounts[2], 1)
+    roach_nft.mintGen0(accounts[1], 2)
 
     tokens = roach_nft.getUsersTokens(accounts[1])
     assert tokens == [1,2,3,5,6], "getUsersTokens"
@@ -83,9 +79,9 @@ def test_enum(accounts, roach_nft):
     assert token == 5, "tokenOfOwnerByIndex"
 
 def test_metadata(accounts, roach_nft):
-    roach_nft.mintGen0(accounts[1], 1, 25, "syndicate")
-    roach_nft.mintGen0(accounts[2], 1, 25, "syndicate")
-    roach_nft.mintGen0(accounts[3], 1, 25, "syndicate")
+    roach_nft.mintGen0(accounts[1], 1)
+    roach_nft.mintGen0(accounts[2], 1)
+    roach_nft.mintGen0(accounts[3], 1)
 
     data = roach_nft.getRoach(1)
     assert data[7] == "Roach 1", "getRoach.name"

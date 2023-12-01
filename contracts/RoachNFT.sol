@@ -72,7 +72,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     uint16 public MAX_BREED_COUNT = 7;
     IMetadata public metadataContract;
 
-    event Mint(address indexed account, uint indexed tokenId, uint traitBonus, string syndicate);
+    event Mint(address indexed account, uint indexed tokenId);
     event Reveal(address indexed owner, uint indexed tokenId);
     event GenomeChanged(uint indexed tokenId, bytes genome);
     event Birth(address indexed owner, uint indexed tokenId, bytes genome, uint40[2] parents, uint40 generation, uint16 resistance);
@@ -197,15 +197,15 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         _mint(to, 1);
     }
 
-    /// @notice Mints new token with autoincremented index and stores traitBonus/syndicate for reveal
+    /// @notice Mints new token with autoincremented index
     /// @dev Only for gen0
     /// @dev Can be called only by authorized operator (GenesisMint contract)
-    function mintGen0(address to, uint count, uint8 traitBonus, string calldata syndicate) external onlyOperator {
+    function mintGen0(address to, uint count) external onlyOperator {
         uint tokenId = _currentIndex;
         _mint(to, count);
         for (uint i = 0; i < count; i++) {
             // do not save Roach struct to mapping for Gen0 because all data is default
-            emit Mint(to, tokenId + i, traitBonus, syndicate);
+            emit Mint(to, tokenId + i);
         }
     }
 
@@ -215,15 +215,9 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     /// @dev Can be called only by authorized operator (bridge contract)
     function revive(
         address to,
-        uint tokenId,
-        bytes calldata genome,
-        uint40[2] calldata parents,
-        uint40 generation,
-        uint16 resistance
+        uint tokenId
     ) external onlyOperator {
         require(_burned(tokenId), 'not burned');
-        roach[tokenId] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance, 0);
-        emit Birth(to, tokenId, genome, parents, generation, resistance);
         _revive(to, tokenId);
     }
 
