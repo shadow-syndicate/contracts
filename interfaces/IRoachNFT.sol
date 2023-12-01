@@ -44,7 +44,7 @@ interface IRoachNFT {
         uint16 resistance
     ) external;
 
-    /// @notice lastRoachId doesn't equap totalSupply because some token will be burned
+    /// @notice lastRoachId doesn't equal totalSupply because some token will be burned
     ///         in using Run or Die mechanic
     function lastRoachId() external view returns (uint);
 

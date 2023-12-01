@@ -15,8 +15,16 @@ contract RevealDebug is Reveal {
     }
 
     function _requestReveal(uint tokenId) internal override {
-        uint seed = uint(keccak256(abi.encodePacked(blockhash(block.number - 1))));
+        uint seed = uint(keccak256(abi.encodePacked(blockhash(block.number - 1)))) ^ tokenId;
         revealCallback(tokenId, seed);
     }
 
+    function claim(uint count) external {
+        require(count <= 10, 'Count > 10');
+        roachContract.mintGen0(msg.sender, count);
+        uint lastId = roachContract.lastRoachId();
+        for (uint i = lastId - count + 1; i <= lastId; i++) {
+            _requestReveal(i);
+        }
+    }
 }
