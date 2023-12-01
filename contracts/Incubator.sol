@@ -71,8 +71,10 @@ contract Incubator is Operators {
     function init(uint index, uint40 parent0, uint40 parent1) external {
         address user = msg.sender;
         IncubatorSlot storage slot = _getSlot(user, index, IncubatorState.AVAILABLE);
-        require(roachNtf.ownerOf(parent0) == user, 'wrong parent1 owner');
+        require(roachNtf.ownerOf(parent0) == user, 'wrong parent0 owner');
         require(roachNtf.ownerOf(parent1) == user, 'wrong parent1 owner');
+        require(roachNtf.isLocked(parent0), 'parent0 not locked');
+        require(roachNtf.isLocked(parent1), 'parent1 not locked');
         require(geneMixer.canBreed(parent0, parent1), 'non compatible parents');
         require(config.isGoodBreedCount(roachNtf.getBreedCount(parent0)), 'parent0 breed count limit');
         require(config.isGoodBreedCount(roachNtf.getBreedCount(parent1)), 'parent1 breed count limit');

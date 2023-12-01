@@ -11,7 +11,6 @@ import "../../interfaces/IRoachNFT.sol";
 abstract contract Reveal is Operators {
 
     IRoachNFT public roachContract;
-
     function _requestReveal(uint tokenId) internal virtual;
 
     bytes[] public genomes;
@@ -28,7 +27,10 @@ abstract contract Reveal is Operators {
 
     /// @notice Setups roach genome and give birth to it.
     function requestReveal(uint tokenId) external {
-        require(roachContract.ownerOf(tokenId) == msg.sender, "Wrong egg owner");
+        address realOwner = roachContract.ownerOf(tokenId);
+        require(realOwner == msg.sender, "Wrong egg owner");
+        require(roachContract.canReveal(tokenId), "Already revealed");
+        roachContract.lockOperator(tokenId);
         _requestReveal(tokenId);
     }
 

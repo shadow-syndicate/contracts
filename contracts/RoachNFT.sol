@@ -65,6 +65,8 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         // Resistance percentage (1234 = 12.34%)
         uint16 resistance;
         uint16 breedCount;
+        // Whether the token has been locked.
+        bool locked;
     }
 
     mapping(uint => Roach) public roach;
@@ -77,8 +79,10 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
     event GenomeChanged(uint indexed tokenId, bytes genome);
     event Birth(address indexed owner, uint indexed tokenId, bytes genome, uint40[2] parents, uint40 generation, uint16 resistance);
     event BreedCountChanged(uint indexed tokenId, uint breedCount);
-
     event MetadataContractChanged(IMetadata metadataContract);
+    // ERC-5192
+    event Locked(uint256 tokenId);
+    event Unlocked(uint256 tokenId);
 
     constructor(IMetadata _metadataContract)
         ERC721A('RCH', 'R')
@@ -192,7 +196,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         uint40 generation,
         uint16 resistance
     ) external onlyOperator {
-        roach[_currentIndex] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance, 0);
+        roach[_currentIndex] = Roach(genome, parents, uint40(block.timestamp), 0, generation, resistance, 0, false);
         emit Birth(to, _currentIndex, genome, parents, generation, resistance);
         _mint(to, 1);
     }
@@ -345,6 +349,45 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         return metadataContract.contractURI();
     }
 
+    function isLocked(uint tokenId) public view returns (bool) {
+        return roach[tokenId].locked;
+    }
+
+    function lock(uint tokenId) external {
+        require(ownerOf(tokenId) == msg.sender, 'Wrong owner');
+        _lock(tokenId);
+    }
+
+    function lockOperator(uint tokenId) external onlyOperator {
+        _lock(tokenId);
+    }
+
+    function _lock(uint tokenId) internal {
+        require(!isLocked(tokenId), 'already locked');
+        roach[tokenId].locked = true;
+        emit Locked(tokenId);
+    }
+
+    function unlock(uint tokenId) external onlyOperator {
+        _unlock(tokenId);
+    }
+
+    function _unlock(uint tokenId) internal {
+        require(isLocked(tokenId), 'already unlocked');
+        roach[tokenId].locked = false;
+        emit Unlocked(tokenId);
+    }
+
+    function _beforeTokenTransfers(
+        address from,
+        address to,
+        uint256 startTokenId,
+        uint256 quantity
+    ) internal override {
+        for (uint i = 0; i < quantity; i++) {
+            require(!isLocked(startTokenId + i), 'Locked');
+        }
+    }
 }
 /*
 .................................,,:::,...........

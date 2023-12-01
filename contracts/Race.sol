@@ -36,6 +36,7 @@ contract Race is Operators {
 
     function register(uint raceId, uint roachId, address token, uint entryFee, uint deadline) external {
         // TODO: check signature
+        // TODO: check ownership/lock
 
         RaceInfo storage race = races[raceId];
 

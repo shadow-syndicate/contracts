@@ -51,6 +51,7 @@ interface IRoachNFT {
     /// @notice Total number of minted tokens for account
     function getNumberMinted(address account) external view returns (uint64);
 
+    function canReveal(uint tokenId) external view returns (bool);
     function revealOperator(uint tokenId, bytes calldata genome) external;
 
     function ownerOf(uint256 tokenId) external view returns (address);
@@ -86,4 +87,9 @@ interface IRoachNFT {
     ) external;
 
     function burnFrom(uint tokenId) external;
+    function transferFrom(address from, address to, uint256 tokenId) external;
+    function lock(uint tokenId) external;
+    function lockOperator(uint tokenId) external;
+    function unlock(uint tokenId) external payable;
+    function isLocked(uint tokenId) external view returns (bool);
 }

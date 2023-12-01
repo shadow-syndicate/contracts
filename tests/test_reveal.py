@@ -23,6 +23,8 @@ def test_reveal_happy_path(accounts, chain, GenesisMintDebug, roach_nft, reveal)
     token = roach_nft.tokenOfOwnerByIndex(buyer, 2)
     assert token == 3, "tokenOfOwnerByIndex"
 
+    assert roach_nft.ownerOf(1) == buyer, "ownerOf"
+
     r = roach_nft.getRoach(1)
 
     assert r[0] == "0x0", 'genome not set'
@@ -40,7 +42,7 @@ def test_reveal_happy_path(accounts, chain, GenesisMintDebug, roach_nft, reveal)
     assert roach_nft.isRevealed(1) == False
 
     tx = reveal.requestReveal(1, {'from':buyer})
-    e = tx.events[0]
+    e = tx.events[1]
     assert e.name == 'Reveal', 'missing event Reveal'
     assert e['tokenId'] == 1, e
 

@@ -4,7 +4,7 @@ from brownie import Wei, reverts
 
 LOGGER = logging.getLogger(__name__)
 
-def test_sale_happy_path(accounts, GenesisMintDebug, roach_nft):
+def test_mint_happy_path(accounts, GenesisMintDebug, roach_nft):
     buyer = accounts[1]
     stage1time = round(time.time()) - 1
     stage1duration = 60 * 60 * 24
