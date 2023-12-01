@@ -39,7 +39,7 @@ def test_reveal_happy_path(accounts, chain, GenesisMintDebug, roach_nft, reveal)
     assert roach_nft.canReveal(1) == True, "canReveal"
     assert roach_nft.isRevealed(1) == False
 
-    tx = reveal.reveal(1, "0x1234", "0x123", 27, "0x0", "0x0", {'from':buyer})
+    tx = reveal.requestReveal(1, {'from':buyer})
     e = tx.events[0]
     assert e.name == 'Reveal', 'missing event Reveal'
     assert e['tokenId'] == 1, e
@@ -47,7 +47,7 @@ def test_reveal_happy_path(accounts, chain, GenesisMintDebug, roach_nft, reveal)
     assert roach_nft.isRevealed(1) == True
 
     r2 = roach_nft.getRoach(1)
-    assert r2[0] == "0x1234", 'genome is set'
+    assert r2[0] == "0x4142", 'genome is set'
     assert r2[1] == [0, 0], 'parents'
     assert r[2] == r2[2], 'creationTime'
     assert abs(r2[3] - round(chain.time())) < 5, 'revealTime'
@@ -55,10 +55,6 @@ def test_reveal_happy_path(accounts, chain, GenesisMintDebug, roach_nft, reveal)
     assert r2[5] == 10000, 'resistance'
 
     with reverts("Wrong egg owner"):
-        reveal.reveal(2, "0x1234", "0x123", 27, "0x0", "0x0", {'from':accounts[2]})
+        reveal.requestReveal(2, {'from':accounts[2]})
 
 
-def test_set_signer(accounts, reveal):
-    assert reveal.signerAddress() == accounts[0], "default signer"
-    reveal.setSigner(accounts[2])
-    assert reveal.signerAddress() == accounts[2], "new signer"

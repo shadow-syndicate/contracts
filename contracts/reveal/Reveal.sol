@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: MIT
+// Roach Racing Club: the first strategic p2e game with deflationary mechanisms (https://roachracingclub.com/)
+pragma solidity ^0.8.10;
+
+import "../Operators.sol";
+import "../../interfaces/IRoachNFT.sol";
+
+/// @title Roach NFT genome reveal contract
+/// @author Shadow Syndicate / Andrey Pelipenko
+/// @dev Reveal genome using random genome from list
+abstract contract Reveal is Operators {
+
+    IRoachNFT public roachContract;
+
+    function _requestReveal(uint tokenId) internal virtual;
+
+    bytes[] public genomes;
+
+    constructor(IRoachNFT _roachContract) {
+        roachContract = _roachContract;
+    }
+
+    function uploadGenomes(bytes[] calldata _genomes) external onlyOperator {
+        for (uint i = 0; i < _genomes.length; i++) {
+            genomes.push(_genomes[i]);
+        }
+    }
+
+    /// @notice Setups roach genome and give birth to it.
+    function requestReveal(uint tokenId) external {
+        require(roachContract.ownerOf(tokenId) == msg.sender, "Wrong egg owner");
+        _requestReveal(tokenId);
+    }
+
+    function _withdrawGenome(uint seed) internal virtual returns (bytes memory genome) {
+        require(genomes.length > 0, 'Out of genomes');
+        uint index = seed % genomes.length;
+        bytes storage result = genomes[index];
+        genomes[index] = genomes[genomes.length - 1];
+        genomes.pop();
+
+        return result;
+    }
+
+    function revealCallback(uint tokenId, uint seed) internal {
+        bytes memory genome = _withdrawGenome(seed);
+        roachContract.revealOperator(tokenId, genome);
+    }
+
+}

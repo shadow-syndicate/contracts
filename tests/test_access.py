@@ -43,5 +43,5 @@ def test_access(accounts, GenesisMint, roach_nft, reveal):
     with reverts("Ownable: caller is not the owner"):
         genesis_sale.setSigner(accounts[1], {'from':accounts[1]})
 
-    with reverts("Ownable: caller is not the owner"):
-        reveal.setSigner(accounts[1], {'from':accounts[1]})
+    with reverts("Access denied"):
+        reveal.uploadGenomes([], {'from':accounts[1]})
