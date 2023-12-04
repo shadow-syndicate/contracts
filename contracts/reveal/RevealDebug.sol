@@ -19,9 +19,13 @@ contract RevealDebug is Reveal {
         revealCallback(tokenId, seed);
     }
 
-    function claim(uint count) external {
+    function claimForMe(uint count) public {
+        claim(msg.sender, count);
+    }
+
+    function claim(address to, uint count) public {
         require(count <= 10, 'Count > 10');
-        roachContract.mintGen0(msg.sender, count);
+        roachContract.mintGen0(to, count);
         uint lastId = roachContract.lastRoachId();
         for (uint i = lastId - count + 1; i <= lastId; i++) {
             _requestReveal(i);

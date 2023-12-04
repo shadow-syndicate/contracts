@@ -7,7 +7,7 @@ import "../GenesisMint.sol";
 contract GenesisMintDebug is GenesisMint {
 
     constructor(
-        IRoachNFT _roachContract,
+        IRoach _roachContract,
         uint stage1startTime,
         uint stage1durationSeconds,
         uint totalTokensOnSale)

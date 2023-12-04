@@ -52,12 +52,12 @@ contract GenesisMint is Operators {
     uint public SALE_START;
     uint public SALE_DURATION;
     address public signerAddress;
-    IRoachNFT public roachContract;
+    IRoach public roachContract;
 
     event Purchase(address indexed account, uint count, uint ethValue);
 
     constructor(
-        IRoachNFT _roachContract,
+        IRoach _roachContract,
         uint stage1startTime,
         uint stage1durationSeconds,
         uint totalTokensOnSale)

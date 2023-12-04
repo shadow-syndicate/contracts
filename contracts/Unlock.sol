@@ -6,7 +6,7 @@ pragma solidity ^0.8.10;
 import "../interfaces/IRoachNFT.sol";
 import "./Operators.sol";
 
-contract Unlock is Operators {
+contract Unlocker is Operators {
     IRoachNFT public roachContract;
 
     constructor(IRoachNFT _roachContract) {

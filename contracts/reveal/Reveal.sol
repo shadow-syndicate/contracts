@@ -10,10 +10,12 @@ import "../../interfaces/IRoachNFT.sol";
 /// @dev Reveal genome using random genome from list
 abstract contract Reveal is Operators {
 
-    IRoachNFT public roachContract;
-    function _requestReveal(uint tokenId) internal virtual;
+    event GenomeUsed(uint index);
 
+    IRoachNFT public roachContract;
     bytes[] public genomes;
+
+    function _requestReveal(uint tokenId) internal virtual;
 
     constructor(IRoachNFT _roachContract) {
         roachContract = _roachContract;
@@ -23,6 +25,14 @@ abstract contract Reveal is Operators {
         for (uint i = 0; i < _genomes.length; i++) {
             genomes.push(_genomes[i]);
         }
+    }
+
+    function getGenome(uint index) external view returns (bytes memory genome) {
+        return genomes[index];
+    }
+
+    function getGenomeCount() external view returns (uint genomeCount) {
+        return genomes.length;
     }
 
     /// @notice Setups roach genome and give birth to it.
@@ -40,6 +50,8 @@ abstract contract Reveal is Operators {
         bytes storage result = genomes[index];
         genomes[index] = genomes[genomes.length - 1];
         genomes.pop();
+
+        emit GenomeUsed(index);
 
         return result;
     }

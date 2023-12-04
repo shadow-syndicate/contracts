@@ -5,9 +5,9 @@ import "./Operators.sol";
 import "../interfaces/IRoachNFT.sol";
 
 contract GeneMixer is Operators {
-    IRoachNFT public roachNtf;
+    IRoach public roachNtf;
 
-    constructor (IRoachNFT _roachNtf) {
+    constructor (IRoach _roachNtf) {
         roachNtf = _roachNtf;
     }
 

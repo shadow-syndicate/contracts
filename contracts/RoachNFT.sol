@@ -49,7 +49,7 @@ import "../interfaces/IRoachNFT.sol";
 /// @author Shadow Syndicate / Andrey Pelipenko
 /// @dev Stores NFT ownership and metadata like genome and parents.
 ///      Uses ERC-721A implementation to optimize gas consumptions during batch mints.
-contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
+contract RoachNFT is ERC721A, Operators, IRoach {
 
     struct Roach {
         // array of genes in secret format
@@ -213,7 +213,7 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         }
     }
 
-    /// @notice Cancels burn for bridge
+    /// @notice Cancels burn for bridge between chains
     /// @dev NFT Bridge burns token when transferring to another chain.
     /// @dev When NFT Bridge returns token back to current contract revive is called.
     /// @dev Can be called only by authorized operator (bridge contract)
@@ -290,6 +290,9 @@ contract RoachNFT is ERC721A, Operators/*, IRoachNFT*/ {
         emit Reveal(ownerOf(tokenId), tokenId);
         emit Birth(ownerOf(tokenId), tokenId, genome, roach[tokenId].parents, roach[tokenId].generation, roach[tokenId].resistance);
         _setGenome(tokenId, genome);
+        if (!isLocked(tokenId)) {
+            _lock(tokenId);
+        }
     }
 
     /// @dev Returns a token ID owned by `owner` at a given `index` of its token list.
