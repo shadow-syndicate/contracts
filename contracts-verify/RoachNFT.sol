@@ -38,7 +38,7 @@
 
 */
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.23;
 
 import "ERC721A.sol";
 import "Operators.sol";

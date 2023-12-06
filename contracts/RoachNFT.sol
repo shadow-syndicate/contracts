@@ -38,18 +38,20 @@
 
 */
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.23;
 
 import "./ERC721A/ERC721A.sol";
 import "./Operators.sol";
 import "../interfaces/IMetadata.sol";
 import "../interfaces/IRoachNFT.sol";
+import "../interfaces/IERC4906.sol";
+import "../interfaces/IERC5192.sol";
 
 /// @title Roach Racing Club NFT registry
 /// @author Shadow Syndicate / Andrey Pelipenko
 /// @dev Stores NFT ownership and metadata like genome and parents.
 ///      Uses ERC-721A implementation to optimize gas consumptions during batch mints.
-contract RoachNFT is ERC721A, Operators, IRoach {
+contract RoachNFT is ERC721A, Operators, IRoach, IERC4906, IERC5192 {
 
     struct Roach {
         // array of genes in secret format
@@ -73,6 +75,7 @@ contract RoachNFT is ERC721A, Operators, IRoach {
     uint16 public constant GEN0_RESISTANCE = 10000; // 100%
     uint16 public MAX_BREED_COUNT = 7;
     IMetadata public metadataContract;
+    mapping(address => bool) public whitelistedTransfersWhenLocked;
 
     event Mint(address indexed account, uint indexed tokenId);
     event Reveal(address indexed owner, uint indexed tokenId);
@@ -80,14 +83,19 @@ contract RoachNFT is ERC721A, Operators, IRoach {
     event Birth(address indexed owner, uint indexed tokenId, bytes genome, uint40[2] parents, uint40 generation, uint16 resistance);
     event BreedCountChanged(uint indexed tokenId, uint breedCount);
     event MetadataContractChanged(IMetadata metadataContract);
-    // ERC-5192
-    event Locked(uint256 tokenId);
-    event Unlocked(uint256 tokenId);
+
+    // TODO: matadata batch update
 
     constructor(IMetadata _metadataContract)
         ERC721A('RCH', 'R')
     {
         _setMetadataContract(_metadataContract);
+        setTransferWhenLockedWhitelist(address(0x0));
+    }
+
+    /// @dev See {IERC165-supportsInterface}.
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721A) returns (bool) {
+        return interfaceId == bytes4(0x49064906) || super.supportsInterface(interfaceId);
     }
 
     /// @dev Token numeration starts from 1 (genesis collection id 1..10k)
@@ -290,7 +298,7 @@ contract RoachNFT is ERC721A, Operators, IRoach {
         emit Reveal(ownerOf(tokenId), tokenId);
         emit Birth(ownerOf(tokenId), tokenId, genome, roach[tokenId].parents, roach[tokenId].generation, roach[tokenId].resistance);
         _setGenome(tokenId, genome);
-        if (!isLocked(tokenId)) {
+        if (!locked(tokenId)) {
             _lock(tokenId);
         }
     }
@@ -352,7 +360,7 @@ contract RoachNFT is ERC721A, Operators, IRoach {
         return metadataContract.contractURI();
     }
 
-    function isLocked(uint tokenId) public view returns (bool) {
+    function locked(uint tokenId) public view returns (bool) {
         return roach[tokenId].locked;
     }
 
@@ -366,7 +374,7 @@ contract RoachNFT is ERC721A, Operators, IRoach {
     }
 
     function _lock(uint tokenId) internal {
-        require(!isLocked(tokenId), 'already locked');
+        require(!locked(tokenId), 'already locked');
         roach[tokenId].locked = true;
         emit Locked(tokenId);
     }
@@ -376,9 +384,17 @@ contract RoachNFT is ERC721A, Operators, IRoach {
     }
 
     function _unlock(uint tokenId) internal {
-        require(isLocked(tokenId), 'already unlocked');
+        require(locked(tokenId), 'already unlocked');
         roach[tokenId].locked = false;
         emit Unlocked(tokenId);
+    }
+
+    function setTransferWhenLockedWhitelist(address account) public onlyOperator {
+
+    }
+
+    function canTransferWhenLocked(address account) view public returns (bool) {
+        return whitelistedTransfersWhenLocked[account];
     }
 
     function _beforeTokenTransfers(
@@ -387,10 +403,22 @@ contract RoachNFT is ERC721A, Operators, IRoach {
         uint256 startTokenId,
         uint256 quantity
     ) internal override {
+        if (canTransferWhenLocked(to) || canTransferWhenLocked(from)) {
+            return;
+        }
         for (uint i = 0; i < quantity; i++) {
-            require(!isLocked(startTokenId + i), 'Locked');
+            require(!locked(startTokenId + i), 'Locked');
         }
     }
+
+    function metadataUpdate(uint256 _tokenId) external onlyOperator {
+        emit MetadataUpdate(_tokenId);
+    }
+
+    function batchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId) external onlyOperator {
+        emit BatchMetadataUpdate(_fromTokenId, _toTokenId);
+    }
+
 }
 /*
 .................................,,:::,...........

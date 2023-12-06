@@ -91,5 +91,4 @@ interface IRoach {
     function lock(uint tokenId) external;
     function lockOperator(uint tokenId) external;
     function unlock(uint tokenId) external;
-    function isLocked(uint tokenId) external view returns (bool);
 }

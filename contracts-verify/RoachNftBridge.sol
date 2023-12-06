@@ -2,13 +2,12 @@
 // Roach Racing Club: the first strategic p2e game with deflationary mechanisms (https://roachracingclub.com/)
 pragma solidity ^0.8.19;
 
-import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
-import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
-import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
-import "../interfaces/IRoachNFT.sol";
-import "./Operators.sol";
+import {CCIPReceiver} from "CCIPReceiver.sol";
+import {IRouterClient} from "IRouterClient.sol";
+import {Client} from "Client.sol";
+import "IRoachNFT.sol";
+import "Operators.sol";
 
-// https://docs.chain.link/ccip/supported-networks/
 contract RoachNftBridge is CCIPReceiver, Operators {
 
     event Sent(uint tokenId, bytes32 messageId);
@@ -17,7 +16,6 @@ contract RoachNftBridge is CCIPReceiver, Operators {
     IRouterClient public router;
     IRoachNFT public nftContract;
     mapping(uint64 => address) public destinationContract; // chainSelector -> contract address
-    mapping(uint64 => address) public senderContracts; // chainSelector -> contract address
 
 
     constructor(IRoachNFT _nftContract, address _routerAddress)
@@ -29,10 +27,6 @@ contract RoachNftBridge is CCIPReceiver, Operators {
 
     function setDestination(uint64 chainSelector, address contractAddress) external onlyOperator {
         destinationContract[chainSelector] = contractAddress;
-    }
-
-    function setSender(uint64 chainSelector, address contractAddress) external onlyOperator {
-        senderContracts[chainSelector] = contractAddress;
     }
 
     function _getRoachBridgeData(uint tokenId) view internal returns (bytes memory data) {
@@ -51,14 +45,12 @@ contract RoachNftBridge is CCIPReceiver, Operators {
     }
 
     function getTargetContractAddress(uint64 destinationChainSelector)
-        view public returns (address target)
-    {
+    view public returns (address target) {
         return destinationContract[destinationChainSelector];
     }
 
     function _getRoachBridgeMessage(uint tokenId, uint64 destinationChainSelector)
-        view internal returns (Client.EVM2AnyMessage memory message)
-    {
+    view internal returns (Client.EVM2AnyMessage memory message) {
         (
             bytes memory genome,
             uint40[2] memory parents,
@@ -93,6 +85,7 @@ contract RoachNftBridge is CCIPReceiver, Operators {
         );
     }
 
+    // https://docs.chain.link/ccip/supported-networks/
     function sendRoach(uint tokenId, uint64 destinationChainSelector) external payable {
         require(nftContract.ownerOf(tokenId) == msg.sender, 'Access denied');
 
@@ -113,16 +106,9 @@ contract RoachNftBridge is CCIPReceiver, Operators {
         emit Sent(tokenId, messageId);
     }
 
-    function isValidSender(uint64 sourceChainSelector, address sender) public view returns (bool) {
-        return senderContracts[sourceChainSelector] == sender;
-    }
-
     function _ccipReceive(
         Client.Any2EVMMessage memory message
     ) internal override {
-        (address sender) = abi.decode(message.sender, (address));
-        require(isValidSender(message.sourceChainSelector, sender), 'invalid sender');
-        // TODO: check sender
         (
             address owner,
             uint tokenId,

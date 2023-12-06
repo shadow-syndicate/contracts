@@ -61,10 +61,10 @@ interface IRoach {
     /// @return generation   Gen0, Gen1, etc
     /// @return resistance   Resistance percentage (1234 = 12.34%)
     function getRoachShort(uint roachId) external view
-    returns (
-        bytes memory genome,
-        uint40 generation,
-        uint16 resistance);
+        returns (
+            bytes memory genome,
+            uint40 generation,
+            uint16 resistance);
 
     function getRoach(uint roachId) external view
     returns (
