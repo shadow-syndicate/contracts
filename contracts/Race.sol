@@ -18,6 +18,7 @@ contract Race is Operators {
 
     struct RaceInfo {
         uint[] roaches;
+        address[] accounts;
         address token;
         uint tokenBank;
     }
@@ -34,24 +35,41 @@ contract Race is Operators {
         mutagenToken = _mutagenToken;
     }
 
-    function register(uint raceId, uint roachId, address token, uint entryFee, uint deadline) external {
+    function register(
+        uint raceId,
+        uint roachId,
+        address token,
+        uint entryFee,
+        uint deadline,
+        uint8 sigV,
+        bytes32 sigR,
+        bytes32 sigS
+    ) external {
         // TODO: check signature
-        // TODO: check ownership/lock
+
+        address account = msg.sender;
+
+        require(nft.ownerOf(roachId) == account, 'Wrong owner');
+        require(nft.locked(roachId), 'Not locked');
+        require(block.timestamp <= deadline, 'timeout');
 
         RaceInfo storage race = races[raceId];
 
         if (race.roaches.length >= MAX_TRACK_COUNT) {
-            emit RegisterFail(raceId, roachId);
+            emit RegisterFail(raceId, roachId); // out of free slots
             return;
         }
 
+        // check duplicated registration
         for (uint i = 0; i < race.roaches.length; i++) {
             require(race.roaches[i] != roachId, "Already registered");
+            require(race.accounts[i] != account, "Already registered");
         }
 
-        _acceptMoney(msg.sender, token, entryFee);
+        _acceptMoney(account, token, entryFee);
 
         races[raceId].roaches.push(roachId);
+        races[raceId].accounts.push(account);
         races[raceId].token = token;
         races[raceId].tokenBank += entryFee;
         emit Register(raceId, roachId, token, entryFee);
@@ -94,7 +112,7 @@ contract Race is Operators {
         uint totalRrcValue = 0;
         uint totalMutagenValue = 0;
         for (uint i = 0; i < raceId.length; i++) {
-            _claim(raceId[i], roachId[i], tokenValue[i], rrcValue[i], mutagenValue[i]);
+            _claim(raceId[i], roachId[i], msg.sender, tokenValue[i], rrcValue[i], mutagenValue[i]);
             tokens[i] = races[raceId[i]].token;
             totalRrcValue += rrcValue[i];
             totalMutagenValue += mutagenValue[i];
@@ -106,9 +124,9 @@ contract Race is Operators {
         emit Claimed(raceId, roachId, tokens, tokenValue, totalRrcValue, totalMutagenValue);
     }
 
-    function _claim(uint raceId, uint roachId, uint tokenValue, uint rrcValue, uint mutagenValue) internal {
+    function _claim(uint raceId, uint roachId, address account, uint tokenValue, uint rrcValue, uint mutagenValue) internal {
         // TODO: check rrcValue and mutagenValue
-        address payable playerAddress = payable(nft.ownerOf(roachId));
+        address payable playerAddress = payable(account);
 
         RaceInfo storage race = races[raceId];
 
@@ -116,6 +134,7 @@ contract Race is Operators {
 
         for (uint i = 0; i < race.roaches.length; i++) {
             if (race.roaches[i] == roachId) {
+                require(account == race.accounts[i], 'Wrong claimer');
                 delete race.roaches[i];
                 race.tokenBank -= tokenValue;
                 _sendMoney(playerAddress, race.token, tokenValue);
@@ -130,7 +149,7 @@ contract Race is Operators {
             account.transfer(value);
         } else {
             IERC20(token).transferFrom(
-            address(this),
+                address(this),
                 account,
                 value
             );
