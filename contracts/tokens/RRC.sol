@@ -3,7 +3,7 @@
 pragma solidity ^0.8.18;
 
 import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/token/ERC20/ERC20.sol";
-import "./Operators.sol";
+import "../Operators.sol";
 
 contract RRC is ERC20, Operators {
 
@@ -20,4 +20,7 @@ contract RRC is ERC20, Operators {
         _mint(to, amount);
     }
 
+    function burn(uint256 amount) external {
+        _burn(msg.sender, amount);
+    }
 }
