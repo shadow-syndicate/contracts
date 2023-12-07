@@ -4,8 +4,9 @@ pragma solidity ^0.8.18;
 
 import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/token/ERC20/ERC20.sol";
 import "../Operators.sol";
+import "../../interfaces/IERC20Mintable.sol";
 
-contract RRC is ERC20, Operators {
+contract RRC is ERC20, IERC20Mintable, Operators {
 
     uint constant MAX_SUPPLY = 1000000000 ether;
 

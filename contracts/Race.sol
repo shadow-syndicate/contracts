@@ -7,6 +7,7 @@ import "./Operators.sol";
 import "../interfaces/IRoachNFT.sol";
 import "../interfaces/IRRC.sol";
 import "../interfaces/IMutagen.sol";
+import "../interfaces/IRefSystem.sol";
 
 contract Race is Operators {
 
@@ -15,6 +16,7 @@ contract Race is Operators {
     event Claimed(uint[] raceId, uint[] roachId, address[] token, uint[] tokenValue, uint rrcValue, uint mutagenValue);
 
     uint public constant MAX_TRACK_COUNT = 10;
+    uint public SYSTEM_FEE = 90;
 
     struct RaceInfo {
         uint[] roaches;
@@ -28,11 +30,13 @@ contract Race is Operators {
     IRoachNFT public nft;
     IRRC public rrcToken;
     IMutagen public mutagenToken;
+    IRefSystem refSystem;
 
-    constructor (IRoachNFT _nft, IRRC _rrcToken, IMutagen _mutagenToken) {
+    constructor (IRoachNFT _nft, IRRC _rrcToken, IMutagen _mutagenToken, IRefSystem _refSystem) {
         nft = _nft;
         rrcToken = _rrcToken;
         mutagenToken = _mutagenToken;
+        refSystem = _refSystem;
     }
 
     function register(
@@ -41,9 +45,10 @@ contract Race is Operators {
         address token,
         uint entryFee,
         uint deadline,
-        uint8 sigV,
-        bytes32 sigR,
-        bytes32 sigS
+        address uplink
+//        uint8 sigV,
+//        bytes32 sigR,
+//        bytes32 sigS
     ) external {
         // TODO: check signature
 
@@ -73,6 +78,15 @@ contract Race is Operators {
         races[raceId].token = token;
         races[raceId].tokenBank += entryFee;
         emit Register(raceId, roachId, token, entryFee);
+
+        address[] memory accounts = new address[](1);
+        accounts[0] = account;
+
+        if (uplink != address(0x0)) {
+            refSystem.registerUplink(account, uplink);
+        }
+
+        _reportFees(token, entryFee * SYSTEM_FEE / 100, accounts);
     }
 
     function _acceptMoney(address account, address token, uint needMoney) internal {
@@ -100,7 +114,11 @@ contract Race is Operators {
         uint[] calldata roachId,
         uint[] calldata tokenValue,
         uint[] calldata rrcValue,
-        uint[] calldata mutagenValue)
+        uint[] calldata mutagenValue
+//        uint8 sigV,  // Stack too deep
+//        bytes32 sigR,
+//        bytes32 sigS
+    )
     external
     {
         // TODO: check signature
@@ -144,6 +162,12 @@ contract Race is Operators {
         revert('Player not found');
     }
 
+    function _reportFees(address token, uint feePerAccount, address[] memory accounts) internal {
+        uint needMoney = refSystem.reportFees(token, feePerAccount, accounts);
+        require(needMoney <= feePerAccount * accounts.length, 'RegSystem bug');
+        _sendMoney(payable(address(refSystem)), token, needMoney);
+    }
+
     function _sendMoney(address payable account, address token, uint value) internal {
         if (token == address(0x0)) {
             account.transfer(value);
@@ -156,4 +180,7 @@ contract Race is Operators {
         }
     }
 
+    function setSystemFee(uint _systemFee) external onlyOwner {
+        SYSTEM_FEE = _systemFee;
+    }
 }

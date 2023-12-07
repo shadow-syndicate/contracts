@@ -4,8 +4,9 @@ pragma solidity ^0.8.18;
 
 import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/token/ERC20/ERC20.sol";
 import "../Operators.sol";
+import "../../interfaces/IERC20Mintable.sol";
 
-abstract contract NonTransferrableToken is ERC20, Operators {
+abstract contract NonTransferrableToken is ERC20, IERC20Mintable, Operators {
 
     mapping(address => bool) whitelisted;
     bool public allowAnyTransfers;
