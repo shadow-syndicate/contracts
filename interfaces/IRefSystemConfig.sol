@@ -5,7 +5,7 @@ pragma solidity ^0.8.18;
 
 interface IRefSystemConfig {
 
-    function getUplinkReward(address downlink, address uplink, address token, uint downlinkPayedFee)
+    function getUplinkReward(address downlink, address uplink, address token, uint downlinkPayedFee, uint level)
         external view returns (address rewardToken, uint rewardValue);
 
 }
