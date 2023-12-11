@@ -7,6 +7,5 @@ interface IRefSystem {
 
     function reportFees(address token, uint feePerAccount, address[] calldata accounts) external returns (uint needMoney);
     function registerUplink(address downlink, address uplink) external;
-    function ban(address uplink) external;
 
 }

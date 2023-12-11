@@ -1,0 +1,12 @@
+[submodule "contracts/private"]
+	path = contracts/private
+	url = https://github.com/shadow-syndicate/rrc-contracts-private.git
+[submodule "tests/private"]
+	path = tests/private
+	url = https://github.com/shadow-syndicate/rrc-contracts-private.git
+[submodule "scripts/private"]
+	path = scripts/private
+	url = https://github.com/shadow-syndicate/rrc-contracts-private.git
+[submodule "interfaces/private"]
+	path = interfaces/private
+	url = https://github.com/shadow-syndicate/rrc-contracts-private.git
