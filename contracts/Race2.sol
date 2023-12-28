@@ -102,7 +102,7 @@ contract Race2 is Operators {
         uint deadline,
         address uplink) internal
     {
-        require(nft.ownerOf(roachId) == account, 'Wrong owner');
+        // require(nft.ownerOf(roachId) == account, 'Wrong owner');
         require(nft.locked(roachId), 'Not locked');
         require(block.timestamp <= deadline, 'timeout');
 
