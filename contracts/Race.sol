@@ -46,9 +46,6 @@ contract Race is Operators {
         uint entryFee,
         uint deadline,
         address uplink
-//        uint8 sigV,
-//        bytes32 sigR,
-//        bytes32 sigS
     ) external {
         // TODO: check signature
 
