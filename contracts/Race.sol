@@ -180,4 +180,8 @@ contract Race is Operators {
     function setSystemFee(uint _systemFee) external onlyOwner {
         SYSTEM_FEE = _systemFee;
     }
+
+    function setRefSystem(IRefSystem _refSystem) external onlyOwner {
+        refSystem = _refSystem;
+    }
 }
