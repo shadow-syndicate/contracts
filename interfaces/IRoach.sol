@@ -88,7 +88,8 @@ interface IRoach {
 
     function burnFrom(uint tokenId) external;
     // function transferFrom(address from, address to, uint256 tokenId) external;
-    function lock(uint tokenId) external;
     function lockOperator(uint tokenId) external;
-    function unlock(uint tokenId) external;
+    function unlockOperator(uint tokenId) external;
+    function exists(uint256 tokenId) external view returns (bool);
+
 }

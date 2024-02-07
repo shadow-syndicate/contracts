@@ -17,10 +17,17 @@ contract Unlocker is Operators {
     }
 
     function unlock(uint tokenId) external payable {
+        require(roachContract.exists(tokenId), "nonexistent token");
         require(roachContract.ownerOf(tokenId) == msg.sender, 'Wrong owner');
         (address tokenAddress, uint tokenValue) = getUnlockPrice();
         _takePayment(msg.sender, tokenAddress, tokenValue);
-        roachContract.unlock(tokenId);
+        roachContract.unlockOperator(tokenId);
+    }
+
+    function lock(uint tokenId) external {
+        require(roachContract.exists(tokenId), "RoachNFT: nonexistent token");
+        require(roachContract.ownerOf(tokenId) == msg.sender, 'Wrong owner');
+        roachContract.lockOperator(tokenId);
     }
 
     function getUnlockPrice() public view

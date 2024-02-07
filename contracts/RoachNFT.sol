@@ -75,7 +75,8 @@ contract RoachNFT is ERC721A, Operators, IRoach, IERC4906, IERC5192 {
     uint16 public constant GEN0_RESISTANCE = 10000; // 100%
     uint16 public MAX_BREED_COUNT = 7;
     IMetadata public metadataContract;
-    mapping(address => bool) public whitelistedTransfersWhenLocked;
+    mapping(address => bool) public whitelistedTransferToWhenLocked;
+    mapping(address => bool) public whitelistedTransferFromWhenLocked;
 
     event Mint(address indexed account, uint indexed tokenId);
     event Reveal(address indexed owner, uint indexed tokenId);
@@ -90,7 +91,7 @@ contract RoachNFT is ERC721A, Operators, IRoach, IERC4906, IERC5192 {
         ERC721A('RCH', 'R')
     {
         _setMetadataContract(_metadataContract);
-        setTransferWhenLockedWhitelist(address(0x0));
+        setTransferToWhenLockedWhitelist(address(0x0), true);
     }
 
     /// @dev See {IERC165-supportsInterface}.
@@ -298,7 +299,7 @@ contract RoachNFT is ERC721A, Operators, IRoach, IERC4906, IERC5192 {
         emit Reveal(ownerOf(tokenId), tokenId);
         emit Birth(ownerOf(tokenId), tokenId, genome, roach[tokenId].parents, roach[tokenId].generation, roach[tokenId].resistance);
         _setGenome(tokenId, genome);
-        if (!locked(tokenId)) {
+        if (!_locked(tokenId)) {
             _lock(tokenId);
         }
     }
@@ -350,7 +351,7 @@ contract RoachNFT is ERC721A, Operators, IRoach, IERC4906, IERC5192 {
 
     /// @notice Returns token metadata URI according to IERC721Metadata
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "ERC721URIStorage: URI query for nonexistent token");
+        require(_exists(tokenId), "RoachNFT: URI query for nonexistent token");
 
         return metadataContract.tokenURI(tokenId);
     }
@@ -360,13 +361,17 @@ contract RoachNFT is ERC721A, Operators, IRoach, IERC4906, IERC5192 {
         return metadataContract.contractURI();
     }
 
-    function locked(uint tokenId) public view returns (bool) {
+    function locked(uint tokenId) external view returns (bool) {
+        require(_exists(tokenId), "RoachNFT: nonexistent token");
+        return _locked(tokenId);
+    }
+
+    function _locked(uint tokenId) internal view returns (bool) {
         return roach[tokenId].locked;
     }
 
-    function lock(uint tokenId) external {
-        require(ownerOf(tokenId) == msg.sender, 'Wrong owner');
-        _lock(tokenId);
+    function exists(uint256 tokenId) external view returns (bool) {
+        return _exists(tokenId);
     }
 
     function lockOperator(uint tokenId) external onlyOperator {
@@ -374,27 +379,35 @@ contract RoachNFT is ERC721A, Operators, IRoach, IERC4906, IERC5192 {
     }
 
     function _lock(uint tokenId) internal {
-        require(!locked(tokenId), 'already locked');
+        require(!_locked(tokenId), 'already locked');
         roach[tokenId].locked = true;
         emit Locked(tokenId);
     }
 
-    function unlock(uint tokenId) external onlyOperator {
+    function unlockOperator(uint tokenId) external onlyOperator {
         _unlock(tokenId);
     }
 
     function _unlock(uint tokenId) internal {
-        require(locked(tokenId), 'already unlocked');
+        require(_locked(tokenId), 'already unlocked');
         roach[tokenId].locked = false;
         emit Unlocked(tokenId);
     }
 
-    function setTransferWhenLockedWhitelist(address account) public onlyOperator {
-
+    function setTransferToWhenLockedWhitelist(address account, bool status) public onlyOperator {
+        whitelistedTransferToWhenLocked[account] = status;
     }
 
-    function canTransferWhenLocked(address account) view public returns (bool) {
-        return whitelistedTransfersWhenLocked[account];
+    function setTransferFromWhenLockedWhitelist(address account, bool status) public onlyOperator {
+        whitelistedTransferFromWhenLocked[account] = status;
+    }
+
+    function canTransferToWhenLocked(address account) view public returns (bool) {
+        return whitelistedTransferToWhenLocked[account];
+    }
+
+    function canTransferFromWhenLocked(address account) view public returns (bool) {
+        return whitelistedTransferFromWhenLocked[account];
     }
 
     function _beforeTokenTransfers(
@@ -403,11 +416,11 @@ contract RoachNFT is ERC721A, Operators, IRoach, IERC4906, IERC5192 {
         uint256 startTokenId,
         uint256 quantity
     ) internal override {
-        if (canTransferWhenLocked(to) || canTransferWhenLocked(from)) {
+        if (canTransferToWhenLocked(to) || canTransferFromWhenLocked(from)) {
             return;
         }
         for (uint i = 0; i < quantity; i++) {
-            require(!locked(startTokenId + i), 'Locked');
+            require(!_locked(startTokenId + i), 'Locked');
         }
     }
 
