@@ -6,9 +6,11 @@ contract GenesisMint2Debug is GenesisMint2 {
 
     constructor(
         IRoach _roachContract,
-        IERC20Mintable _traxToken)
-        GenesisMint2(_roachContract, _traxToken)
+        IERC20Mintable _traxToken,
+        uint stage1startTime)
+        GenesisMint2(_roachContract, _traxToken, stage1startTime)
     {
+        MINT_START = stage1startTime;
     }
 
     function _requestRandomForMint(address account) override internal {
@@ -16,4 +18,19 @@ contract GenesisMint2Debug is GenesisMint2 {
         _randomCallback(account, seed);
     }
 
+    function setStage(uint mintStartTime, uint mintDuration, uint totalTolkensToMint) external onlyOwner {
+        MINT_START = mintStartTime;
+        MINT_DURATION = mintDuration;
+        TOTAL_TOKENS_TO_MINT = totalTolkensToMint;
+    }
+
+    function setProbability(uint baseProbability) external onlyOwner {
+        BASE_PROBABILITY = baseProbability;
+    }
+
+    function mintWhitelistedNoSig(uint limitForAccount)
+        external payable
+    {
+        _mint(msg.sender, limitForAccount);
+    }
 }

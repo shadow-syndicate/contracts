@@ -52,8 +52,10 @@ abstract contract GenesisMint2 is Operators {
     IRoach public roachContract;
     IERC20Mintable traxToken;
     uint public MINT_START;
-    uint public MINT_DURATION = 0;
+    uint public MINT_DURATION = 0; // unlimited by default
     uint public TOTAL_TOKENS_TO_MINT = 10_000;
+    uint public PRICE = 1 ether;
+    uint public BASE_PROBABILITY = 50*100;
     address public signerAddress;
 
     event Mint(address indexed account, uint indexed roachId, uint ethValue);
@@ -61,19 +63,24 @@ abstract contract GenesisMint2 is Operators {
     event MintTraxSuccess(address indexed account, uint indexed roachId);
     event MintTraxFail(address indexed account);
 
+    function _requestRandomForMint(address account) virtual internal;
+
     constructor(
         IRoach _roachContract,
-        IERC20Mintable _traxToken)
+        IERC20Mintable _traxToken,
+        uint stage1startTime)
     {
         roachContract = _roachContract;
         traxToken = _traxToken;
+        MINT_START = stage1startTime;
     }
 
-    function getMintStatus(address account, uint limitForAccount) external view returns (
+    function getMintStatus(address account, uint whitelistLimitForAccount) external view returns (
         uint stage,
         int leftToMint,
         uint nextStageTimestamp,
-        int allowedToMint)
+        int allowedToMint,
+        uint price)
     {
         stage = getMintStage();
 
@@ -83,8 +90,9 @@ abstract contract GenesisMint2 is Operators {
                     0;
         leftToMint = int(TOTAL_TOKENS_TO_MINT) - int(totalMinted());
         allowedToMint =
-            stage == 1 ? (int)(getAllowedToMintForAccount(account, limitForAccount)) :
+            stage == 1 ? (int)(getAllowedToMintForAccount(account, whitelistLimitForAccount)) :
                 int(0);
+        price = getRoachPriceInTrax();
     }
 
     function totalMinted() public view returns (uint256) {
@@ -110,7 +118,7 @@ abstract contract GenesisMint2 is Operators {
         bytes32 sigR,
         bytes32 sigS
     )
-    external payable
+        external payable
     {
         require(isValidSignature(msg.sender, limitForAccount, sigV, sigR, sigS), "Wrong signature");
         _mint(msg.sender, limitForAccount);
@@ -126,7 +134,7 @@ abstract contract GenesisMint2 is Operators {
     function _mint(
         address account,
         uint limitForAccount)
-    internal
+        internal
     {
         uint stage = getMintStage();
         require(stage == 1, "Mint not active");
@@ -158,7 +166,6 @@ abstract contract GenesisMint2 is Operators {
         emit MintRequest(msg.sender, msg.value);
     }
 
-    function _requestRandomForMint(address account) virtual internal;
 
     function _randomCallback(address account, uint seed)
         internal
@@ -182,11 +189,11 @@ abstract contract GenesisMint2 is Operators {
     }
 
     function getMintProbability() public view returns (uint) {
-        return 50*100;
+        return BASE_PROBABILITY;
     }
 
     function getRoachPriceInTrax() public view returns (uint) {
-        return 1 ether;
+        return PRICE;
     }
 
     /// Signatures
@@ -203,7 +210,7 @@ abstract contract GenesisMint2 is Operators {
         address account, uint limitForAccount,
         uint8 sigV, bytes32 sigR, bytes32 sigS
     )
-    public pure returns (address)
+        public pure returns (address)
     {
         bytes32 msgHash = hashArguments(account, limitForAccount);
         return ecrecover(msgHash, sigV, sigR, sigS);
@@ -214,9 +221,7 @@ abstract contract GenesisMint2 is Operators {
         address account, uint limitForAccount,
         uint8 sigV, bytes32 sigR, bytes32 sigS
     )
-    public
-    view
-    returns (bool)
+        public view returns (bool)
     {
         return getSigner(account, limitForAccount, sigV, sigR, sigS) == signerAddress;
     }
@@ -224,6 +229,10 @@ abstract contract GenesisMint2 is Operators {
     /// @notice Changes secret key that is used for signature generation
     function setSigner(address newSigner) external onlyOwner {
         signerAddress = newSigner;
+    }
+
+    function setPrice(uint _price) external onlyOwner {
+        PRICE = _price;
     }
 
     /// @notice Mints new NFT with selected parameters

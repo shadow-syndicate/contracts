@@ -14,6 +14,10 @@ def roach_nft(accounts, RoachNFT, metadata):
     result = accounts[0].deploy(RoachNFT, metadata)
     yield result
 
+@pytest.fixture
+def trax(accounts, TRAX):
+    result = accounts[0].deploy(TRAX)
+    yield result
 
 @pytest.fixture
 def genesis_sale(accounts, GenesisMint, roach_nft):
