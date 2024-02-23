@@ -40,8 +40,8 @@
 
 pragma solidity ^0.8.10;
 
-import "./Operators.sol";
-import "../interfaces/IRoachNFT.sol";
+import "../Operators.sol";
+import "../../interfaces/IRoachNFT.sol";
 
 /// @title Genesis collection sale contract
 /// @author Shadow Syndicate / Andrey Pelipenko

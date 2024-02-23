@@ -2,7 +2,7 @@
 // Roach Racing Club: Collectible NFT game (https://roachracingclub.com/)
 pragma solidity ^0.8.10;
 
-import "../GenesisMint.sol";
+import "../mint/GenesisMint.sol";
 
 contract GenesisMintDebug is GenesisMint {
 
