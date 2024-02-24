@@ -18,13 +18,13 @@ contract GenesisMint2Debug is GenesisMint2 {
         _randomCallback(account, seed);
     }
 
-    function setStage(uint mintStartTime, uint mintDuration, uint totalTolkensToMint) external onlyOwner {
+    function setStage(uint mintStartTime, uint mintDuration, uint totalTolkensToMint) external onlyOperator {
         MINT_START = mintStartTime;
         MINT_DURATION = mintDuration;
         TOTAL_TOKENS_TO_MINT = totalTolkensToMint;
     }
 
-    function setProbability(uint baseProbability) external onlyOwner {
+    function setProbability(uint baseProbability) external onlyOperator {
         BASE_PROBABILITY = baseProbability;
     }
 

@@ -80,7 +80,8 @@ abstract contract GenesisMint2 is Operators {
         int leftToMint,
         uint nextStageTimestamp,
         int allowedToMint,
-        uint price)
+        uint price,
+        uint currentProbability)
     {
         stage = getMintStage();
 
@@ -93,6 +94,7 @@ abstract contract GenesisMint2 is Operators {
             stage == 1 ? (int)(getAllowedToMintForAccount(account, whitelistLimitForAccount)) :
                 int(0);
         price = getRoachPriceInTrax();
+        currentProbability = getMintProbability();
     }
 
     function totalMinted() public view returns (uint256) {
