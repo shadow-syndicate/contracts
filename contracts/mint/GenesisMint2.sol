@@ -75,6 +75,12 @@ abstract contract GenesisMint2 is Operators {
         MINT_START = stage1startTime;
     }
 
+    // stage: 0 - not started, 1 - active, 2 - finished
+    // leftToMint - total for all accounts
+    // nextStageTimestamp - stage=0 ? mint start time : mint finish time
+    // allowedToMint - left free mint for current account
+    // price - price in TRAX
+    // currentProbability - decimals 2 (5000 = 50%)
     function getMintStatus(address account, uint whitelistLimitForAccount) external view returns (
         uint stage,
         int leftToMint,
@@ -153,14 +159,12 @@ abstract contract GenesisMint2 is Operators {
     }
 
     /// TRAX
-
     function mintForTrax()
         external payable
     {
         require(!_isCalledFromContract(), "Called from another contract");
         _takePayment(msg.sender, traxToken, getRoachPriceInTrax());
 
-        // TODO: check TRAX
         uint stage = getMintStage();
         require(stage == 1, "Mint not active");
 
