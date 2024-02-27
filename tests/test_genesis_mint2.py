@@ -29,16 +29,16 @@ def test_mint_happy_path(accounts, GenesisMint2Debug, roach_nft, trax):
     assert genesis_mint.getAllowedToMintForAccount(buyer, ALLOWED) == ALLOWED, "getAllowedToMintForAccount"
 
     with reverts("Account limit reached"):
-        genesis_mint.mintWhitelistedNoSig(0, {'from':buyer})
+        genesis_mint.mintWhitelistNoSig(0, {'from':buyer})
 
-    genesis_mint.mintWhitelistedNoSig(ALLOWED, {'from':buyer})
+    genesis_mint.mintWhitelistNoSig(ALLOWED, {'from':buyer})
     assert roach_nft.balanceOf(buyer) == 1
 
     status = genesis_mint.getMintStatus(buyer, ALLOWED)
     assert status[3] == 0, "allowedToMintForAccount"
 
     with reverts("Account limit reached"):
-        genesis_mint.mintWhitelistedNoSig(ALLOWED, {'from':buyer})
+        genesis_mint.mintWhitelistNoSig(ALLOWED, {'from':buyer})
 
     ########## TRAX ############
 

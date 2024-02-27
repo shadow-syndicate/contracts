@@ -58,8 +58,8 @@ abstract contract GenesisMint2 is Operators {
     uint public BASE_PROBABILITY = 50*100;
     address public signerAddress;
 
-    event Mint(address indexed account, uint indexed roachId, uint ethValue);
-    event MintRequest(address indexed account, uint ethValue);
+    event MintWhitelist(address indexed account, uint indexed roachId, uint ethValue);
+    event MintTraxRequest(address indexed account, uint traxPrice);
     event MintTraxSuccess(address indexed account, uint indexed roachId);
     event MintTraxFail(address indexed account);
 
@@ -120,7 +120,7 @@ abstract contract GenesisMint2 is Operators {
                 2;
     }
 
-    function mintWhitelisted(
+    function mintWhitelist(
         uint limitForAccount,
         uint8 sigV,
         bytes32 sigR,
@@ -151,7 +151,7 @@ abstract contract GenesisMint2 is Operators {
 
         uint soldCount = totalMinted();
         _mintRaw(account, 1);
-        emit Mint(account, roachContract.lastRoachId(), msg.value);
+        emit MintWhitelist(account, roachContract.lastRoachId(), msg.value);
     }
 
     function _mintRaw(address to, uint count) internal {
@@ -163,13 +163,14 @@ abstract contract GenesisMint2 is Operators {
         external payable
     {
         require(!_isCalledFromContract(), "Called from another contract");
-        _takePayment(msg.sender, traxToken, getRoachPriceInTrax());
+        uint price = getRoachPriceInTrax();
+        _takePayment(msg.sender, traxToken, price);
 
         uint stage = getMintStage();
         require(stage == 1, "Mint not active");
 
         _requestRandomForMint(msg.sender);
-        emit MintRequest(msg.sender, msg.value);
+        emit MintTraxRequest(msg.sender, price);
     }
 
 

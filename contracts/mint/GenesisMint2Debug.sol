@@ -28,7 +28,7 @@ contract GenesisMint2Debug is GenesisMint2 {
         BASE_PROBABILITY = baseProbability;
     }
 
-    function mintWhitelistedNoSig(uint limitForAccount)
+    function mintWhitelistNoSig(uint limitForAccount)
         external payable
     {
         _mint(msg.sender, limitForAccount);
