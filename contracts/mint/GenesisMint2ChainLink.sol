@@ -15,7 +15,7 @@ contract GenesisMint2Chainlink is GenesisMint2, VRFConsumerBaseV2 {
     uint64 subscriptionId;
     VRFCoordinatorV2Interface vrfCoordinator;
     uint32 constant callbackGasLimit = 2_000_000;
-    uint16 constant requestConfirmations = 1;
+    uint16 constant requestConfirmations = 3;
     mapping(uint => address) public requests;
 
     // Chainlink constants: https://docs.chain.link/docs/vrf-contracts/
@@ -35,8 +35,8 @@ contract GenesisMint2Chainlink is GenesisMint2, VRFConsumerBaseV2 {
         subscriptionId = _subscriptionId;
     }
 
-    function _requestRandomForMint(address account) internal override {
-        uint256 requestId = vrfCoordinator.requestRandomWords(
+    function _requestRandomForMint(address account) internal override returns (uint256 requestId) {
+        requestId = vrfCoordinator.requestRandomWords(
             chainLinkKeyHash,
             subscriptionId,
             requestConfirmations,
@@ -49,6 +49,6 @@ contract GenesisMint2Chainlink is GenesisMint2, VRFConsumerBaseV2 {
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
         address account = requests[requestId];
         delete requests[requestId];
-        _randomCallback(account, randomWords[0]);
+        _randomCallback(account, randomWords[0], requestId);
     }
 }

@@ -59,11 +59,10 @@ abstract contract GenesisMint2 is Operators {
     address public signerAddress;
 
     event MintWhitelist(address indexed account, uint indexed roachId, uint ethValue);
-    event MintTraxRequest(address indexed account, uint traxPrice);
-    event MintTraxSuccess(address indexed account, uint indexed roachId);
-    event MintTraxFail(address indexed account);
+    event MintTraxRequest(address indexed account, uint traxPrice, uint256 requestId);
+    event MintTrax(address indexed account, uint256 indexed requestId, bool success, uint indexed roachId);
 
-    function _requestRandomForMint(address account) virtual internal;
+    function _requestRandomForMint(address account) virtual internal returns (uint256 requestId);
 
     constructor(
         IRoach _roachContract,
@@ -169,19 +168,19 @@ abstract contract GenesisMint2 is Operators {
         uint stage = getMintStage();
         require(stage == 1, "Mint not active");
 
-        _requestRandomForMint(msg.sender);
-        emit MintTraxRequest(msg.sender, price);
+        uint256 requestId = _requestRandomForMint(msg.sender);
+        emit MintTraxRequest(msg.sender, price, requestId);
     }
 
 
-    function _randomCallback(address account, uint seed)
+    function _randomCallback(address account, uint seed, uint256 requestId)
         internal
     {
         uint stage = getMintStage();
 
         if (stage != 1) {
             // Mint not active
-            emit MintTraxFail(account);
+            emit MintTrax(account, requestId, false, 0);
             return;
         }
 
@@ -189,9 +188,9 @@ abstract contract GenesisMint2 is Operators {
         uint dice = seed % 10000;
         if (dice < probality) {
             _mintRaw(account, 1);
-            emit MintTraxSuccess(account, roachContract.lastRoachId());
+            emit MintTrax(account, requestId, true, roachContract.lastRoachId());
         } else {
-            emit MintTraxFail(account);
+            emit MintTrax(account, requestId, false, 0);
         }
     }
 

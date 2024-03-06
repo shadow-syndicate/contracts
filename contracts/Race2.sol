@@ -105,6 +105,7 @@ contract Race2 is Operators {
         // require(nft.ownerOf(roachId) == account, 'Wrong owner');
         require(nft.locked(roachId), 'Not locked');
         require(block.timestamp <= deadline, 'timeout');
+        // TODO: check aborted
 
         RaceInfo storage race = races[raceId];
 
