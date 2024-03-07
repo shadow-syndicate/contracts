@@ -17,6 +17,8 @@ contract Race2 is Operators {
     event Finished(uint raceId);
     event Aborted(uint raceId);
     event RaceNotFound(uint raceId);
+    event MarkAborted(uint raceId);
+    event AbortedCleanup(uint raceId);
 
     uint public constant MAX_TRACK_COUNT = 10;
 
@@ -25,6 +27,8 @@ contract Race2 is Operators {
         address[] accounts;
         address token;
         uint tokenBank;
+        uint40 deadline;
+        bool aborted;
     }
 
     mapping(uint => RaceInfo) public races;
@@ -46,7 +50,7 @@ contract Race2 is Operators {
         refSystem = _refSystem;
     }
 
-    function setkarmaBonus(IERC20Mintable _karmaToken, uint _karmaBonus) external onlyOwner {
+    function setKarmaBonus(IERC20Mintable _karmaToken, uint _karmaBonus) external onlyOwner {
         karmaToken = _karmaToken;
         karmaBonus =  _karmaBonus;
     }
@@ -102,12 +106,11 @@ contract Race2 is Operators {
         uint deadline,
         address uplink) internal
     {
-        // require(nft.ownerOf(roachId) == account, 'Wrong owner');
         require(nft.locked(roachId), 'Not locked');
         require(block.timestamp <= deadline, 'timeout');
-        // TODO: check aborted
 
         RaceInfo storage race = races[raceId];
+        require(!race.aborted, 'aborted');
 
         if (race.roaches.length >= MAX_TRACK_COUNT) {
             emit RegisterFail(raceId, roachId); // out of free slots
@@ -122,10 +125,11 @@ contract Race2 is Operators {
 
         _acceptMoney(account, token, entryFee);
 
-        races[raceId].roaches.push(roachId);
-        races[raceId].accounts.push(account);
-        races[raceId].token = token;
-        races[raceId].tokenBank += entryFee;
+        race.roaches.push(roachId);
+        race.accounts.push(account);
+        race.token = token;
+        race.tokenBank += entryFee;
+        race.deadline = uint40(deadline);
         emit Register(raceId, roachId, token, entryFee);
 
         if (uplink != address(0x0)) {
@@ -182,7 +186,7 @@ contract Race2 is Operators {
 
     function _reportRaceAborted(uint raceId) internal returns (bool success){
         RaceInfo storage race = races[raceId];
-        if (race.accounts.length == 0) {
+        if (race.accounts.length == 0 || race.aborted) {
             // maybe race abort has been already called
             // do not fail duplicated transaction, just emit event
             emit RaceNotFound(raceId);
@@ -195,8 +199,26 @@ contract Race2 is Operators {
             }
         }
         emit Aborted(raceId);
-        delete races[raceId];
+        if (race.deadline < block.timestamp) {
+            // it is safe to delete race because following registrations will fail on deadline check
+            delete races[raceId];
+        } else {
+            // do not delete race to prevent future registrations
+            race.tokenBank = 0;
+            race.aborted = true;
+            emit MarkAborted(raceId);
+        }
         return true;
+    }
+
+    function cleanupRace(uint raceId) external {
+        RaceInfo storage race = races[raceId];
+        if (race.aborted && race.deadline < block.timestamp) {
+            // anyone can delete outdated aborted race
+            delete races[raceId];
+            _mintKarma(msg.sender);
+            emit AbortedCleanup(raceId);
+        }
     }
 
     function reportRaceFinish(
